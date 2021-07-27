@@ -222,6 +222,27 @@ void RigidBody::setLocalInertiaTensor(const Vector3& inertiaTensorLocal) {
              "Body " + std::to_string(mEntity.id) + ": Set inertiaTensorLocal=" + inertiaTensorLocal.to_string(),  __FILE__, __LINE__);
 }
 
+// Return local inertia orientation (in body coordinates). Iworld = Ocombined * Iloc * Ocombined^-1, Ocombined = body orientation * local inertia orientation
+/**
+ * @return A quaternion representing local orientation of mass in local-space
+ */
+const Quaternion& RigidBody::getLocalInertiaOrientation() const {
+
+    return mWorld.mRigidBodyComponents.getLocalInertiaOrientation(mEntity);
+}
+
+// Set local inertia orientation (in body coordinates). Iworld = Ocombined * Iloc * Ocombined^-1, Ocombined = body orientation * local inertia orientation
+/**
+ * @param localInertiaOrientation A quaternion representing local orientation of mass in local-space
+ */
+void RigidBody::setLocalInertiaOrientation(const Quaternion& localInertiaOrientation) {
+
+    mWorld.mRigidBodyComponents.setLocalInertiaOrientation(mEntity, localInertiaOrientation);
+
+    RP3D_LOG(mWorld.mConfig.worldName, Logger::Level::Information, Logger::Category::Body,
+        "Body " + std::to_string(mEntity.id) + ": Set localInertiaOrientation=" + localInertiaOrientation.to_string(), __FILE__, __LINE__);
+}
+
 // Apply an external force to the body at its center of mass.
 /// If the body is sleeping, calling this method will wake it up. Note that the
 /// force will we added to the sum of the applied forces and that this sum will be
@@ -869,7 +890,8 @@ void RigidBody::updateOverlappingPairs() {
 /// Return the inverse of the inertia tensor in world coordinates.
 const Matrix3x3 RigidBody::getWorldInertiaTensorInverse(PhysicsWorld& world, Entity bodyEntity) {
 
-    Matrix3x3 orientation = world.mTransformComponents.getTransform(bodyEntity).getOrientation().getMatrix();
+    Matrix3x3 orientation = (world.mTransformComponents.getTransform(bodyEntity).getOrientation() * world.mRigidBodyComponents.getLocalInertiaOrientation(bodyEntity)).getMatrix();
+
     const Vector3& inverseInertiaLocalTensor = world.mRigidBodyComponents.getInertiaTensorLocalInverse(bodyEntity);
     Matrix3x3 orientationTranspose = orientation.getTranspose();
     orientationTranspose[0] *= inverseInertiaLocalTensor.x;

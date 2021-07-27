@@ -112,6 +112,9 @@ class RigidBodyComponents : public Components {
         /// Array with the inverse of the inertia tensor of each component
         Vector3* mInverseInertiaTensorsLocal;
 
+        /// Array with local inertia orientations of each component
+        Quaternion* mLocalInertiaOrientations;
+
         /// Array with the constrained linear velocity of each component
         Vector3* mConstrainedLinearVelocities;
 
@@ -272,6 +275,12 @@ class RigidBodyComponents : public Components {
 
         /// Set the inverse local inertia tensor of an entity
         void setInverseInertiaTensorLocal(Entity bodyEntity, const Vector3& inertiaTensorLocalInverse);
+
+        /// Set local inertia orientation of an entity
+        void setLocalInertiaOrientation(Entity bodyEntity, const Quaternion& localInertiaOrientation);
+
+        /// Return local inertia orientation of an entity
+        const Quaternion& getLocalInertiaOrientation(Entity bodyEntity) const;
 
         /// Return the constrained linear velocity of an entity
         const Vector3& getConstrainedLinearVelocity(Entity bodyEntity) const;
@@ -587,6 +596,22 @@ inline void RigidBodyComponents::setInverseInertiaTensorLocal(Entity bodyEntity,
    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
 
    mInverseInertiaTensorsLocal[mMapEntityToComponentIndex[bodyEntity]] = inertiaTensorLocalInverse;
+}
+
+// Set local inertia orientation of an entity
+inline void RigidBodyComponents::setLocalInertiaOrientation(Entity bodyEntity, const Quaternion& localInertiaOrientation) {
+
+    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
+
+    mLocalInertiaOrientations[mMapEntityToComponentIndex[bodyEntity]] = localInertiaOrientation;
+}
+
+// Return local inertia orientation of an entity
+inline const Quaternion& RigidBodyComponents::getLocalInertiaOrientation(Entity bodyEntity) const {
+
+    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
+
+    return mLocalInertiaOrientations[mMapEntityToComponentIndex[bodyEntity]];
 }
 
 // Return the constrained linear velocity of an entity

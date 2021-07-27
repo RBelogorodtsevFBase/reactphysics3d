@@ -111,6 +111,12 @@ class RigidBody : public CollisionBody {
         /// Set the local inertia tensor of the body (in body coordinates)
         void setLocalInertiaTensor(const Vector3& inertiaTensorLocal);
 
+        /// Return local inertia orientation (in body coordinates). Iworld = Ocombined * Iloc * Ocombined^-1, Ocombined = body orientation * local inertia orientation
+        const Quaternion& getLocalInertiaOrientation() const;
+
+        /// Set local inertia orientation (in body coordinates). Iworld = Ocombined * Iloc * Ocombined^-1, Ocombined = body orientation * local inertia orientation
+        void setLocalInertiaOrientation(const Quaternion& localInertiaOrientation);
+
         /// Return the center of mass of the body (in local-space coordinates)
         const Vector3& getLocalCenterOfMass() const;
 
