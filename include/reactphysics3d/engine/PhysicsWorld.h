@@ -99,6 +99,9 @@ class PhysicsWorld {
             /// True if the sleeping technique is enabled
             bool isSleepingEnabled;
 
+            /// number of XPBD substeps per update
+            uint defaultXPBDNbSubsteps;
+
             /// Number of iterations when solving the velocity constraints of the Sequential Impulse technique
             uint defaultVelocitySolverNbIterations;
 
@@ -134,6 +137,7 @@ class PhysicsWorld {
                 restitutionVelocityThreshold = decimal(0.5);
                 defaultRollingRestistance = decimal(0.0);
                 isSleepingEnabled = true;
+                defaultXPBDNbSubsteps = 20,
                 defaultVelocitySolverNbIterations = 10;
                 defaultPositionSolverNbIterations = 5;
                 defaultTimeBeforeSleep = 1.0f;
@@ -159,6 +163,7 @@ class PhysicsWorld {
                 ss << "restitutionVelocityThreshold=" << restitutionVelocityThreshold << std::endl;
                 ss << "defaultRollingRestistance=" << defaultRollingRestistance << std::endl;
                 ss << "isSleepingEnabled=" << isSleepingEnabled << std::endl;
+                ss << "defaultXPBDNbSubsteps=" << defaultXPBDNbSubsteps << std::endl;
                 ss << "defaultVelocitySolverNbIterations=" << defaultVelocitySolverNbIterations << std::endl;
                 ss << "defaultPositionSolverNbIterations=" << defaultPositionSolverNbIterations << std::endl;
                 ss << "defaultTimeBeforeSleep=" << defaultTimeBeforeSleep << std::endl;
@@ -254,6 +259,9 @@ class PhysicsWorld {
 
         /// Dynamics system
         DynamicsSystem mDynamicsSystem;
+
+        /// Number of XPBD substeps per update
+        uint mXPBDNbSubsteps;
 
         /// Number of iterations for the velocity solver of the Sequential Impulses technique
         uint mNbVelocitySolverIterations;
@@ -366,6 +374,15 @@ class PhysicsWorld {
 
         /// Update the physics simulation
         void update(decimal timeStep);
+
+        /// Update the physics simulation using XPBD
+        void updateXPBD(decimal timeStep);
+
+        /// Get the number of XPBD substeps per update
+        uint getXPBDNbSubsteps() const;
+
+        /// Set the number of XPBD substeps per update
+        void setXPBDNbSubsteps(uint nbSteps);
 
         /// Get the number of iterations for the velocity constraint solver
         uint getNbIterationsVelocitySolver() const;
@@ -603,6 +620,15 @@ inline Profiler* PhysicsWorld::getProfiler() {
 }
 
 #endif
+
+// Get the number of XPBD substeps per update
+/**
+ * @return The number of XPBD substeps per update
+ */
+inline uint PhysicsWorld::getXPBDNbSubsteps() const
+{
+    return mXPBDNbSubsteps;
+}
 
 // Get the number of iterations for the velocity constraint solver
 /**

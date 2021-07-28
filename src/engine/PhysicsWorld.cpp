@@ -66,6 +66,7 @@ PhysicsWorld::PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& wo
                                         mBallAndSocketJointsComponents, mFixedJointsComponents, mHingeJointsComponents,
                                         mSliderJointsComponents),
                 mDynamicsSystem(*this, mCollisionBodyComponents, mRigidBodyComponents, mTransformComponents, mCollidersComponents, mIsGravityEnabled, mConfig.gravity),
+                mXPBDNbSubsteps(mConfig.defaultXPBDNbSubsteps),
                 mNbVelocitySolverIterations(mConfig.defaultVelocitySolverNbIterations),
                 mNbPositionSolverIterations(mConfig.defaultPositionSolverNbIterations), 
                 mIsSleepingEnabled(mConfig.isSleepingEnabled), mRigidBodies(mMemoryManager.getPoolAllocator()),
@@ -371,6 +372,74 @@ void PhysicsWorld::update(decimal timeStep) {
 
     if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
 
+    // Reset the external force and torque applied to the bodies
+    mDynamicsSystem.resetBodiesForceAndTorque();
+
+    // Reset the islands
+    mIslands.clear();
+
+    mProcessContactPairsOrderIslands.clear(true);
+
+    // Generate debug rendering primitives (if enabled)
+    if (mIsDebugRenderingEnabled) {
+        mDebugRenderer.computeDebugRenderingPrimitives(*this);
+    }
+
+    // Reset the single frame memory allocator
+    mMemoryManager.resetFrameAllocator();
+}
+
+
+void PhysicsWorld::updateXPBD(decimal timeStep) {
+
+#ifdef IS_RP3D_PROFILING_ENABLED
+
+    // Increment the frame counter of the profiler
+    mProfiler->incrementFrameCounter();
+#endif
+
+    RP3D_PROFILE("PhysicsWorld::updateXPBD()", mProfiler);
+
+    // Reset the debug renderer
+    if (mIsDebugRenderingEnabled) {
+        mDebugRenderer.reset();
+    }
+
+    // Compute the collision detection
+    mCollisionDetection.computeCollisionDetection();
+
+    // Create the islands
+    createIslands();
+
+    // Create the actual narrow-phase contacts
+    mCollisionDetection.createContacts();
+
+    // Report the contacts to the user
+    mCollisionDetection.reportContactsAndTriggers();
+
+    // Disable the joints for pair of sleeping bodies
+    disableJointsOfSleepingBodies();
+/*
+    // Integrate the velocities
+    mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
+
+    // Solve the contacts and constraints
+    solveContactsAndConstraints(timeStep);
+
+    // Integrate the position and orientation of each body
+    mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
+
+    // Solve the position correction for constraints
+    solvePositionCorrection();
+
+    // Update the state (positions and velocities) of the bodies
+    mDynamicsSystem.updateBodiesState();
+
+    // Update the colliders components
+    mCollisionDetection.updateColliders(timeStep);
+
+    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
+*/
     // Reset the external force and torque applied to the bodies
     mDynamicsSystem.resetBodiesForceAndTorque();
 
@@ -711,6 +780,17 @@ void PhysicsWorld::destroyJoint(Joint* joint) {
     mMemoryManager.release(MemoryManager::AllocationType::Pool, joint, nbBytes);
 }
 
+// Set the number of XPBD substeps per update
+/**
+ * @param nbSteps Number of iterations for the velocity solver
+ */
+void PhysicsWorld::setXPBDNbSubsteps(uint nbSteps) {
+
+    mXPBDNbSubsteps = nbSteps;
+
+    RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
+        "Physics World: Set XPBD nb substeps set to " + std::to_string(nbSteps), __FILE__, __LINE__);
+}
 
 // Set the number of iterations for the velocity constraint solver
 /**
