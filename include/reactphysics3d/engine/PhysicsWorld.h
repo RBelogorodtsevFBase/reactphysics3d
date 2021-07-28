@@ -296,6 +296,8 @@ class PhysicsWorld {
         /// Constructor
         PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& worldSettings = WorldSettings(), Profiler* profiler = nullptr);
 
+        void solveXPBD(decimal timeStep);
+
         /// Notify the world if a body is disabled (slepping or inactive) or not
         void setBodyDisabled(Entity entity, bool isDisabled);
 

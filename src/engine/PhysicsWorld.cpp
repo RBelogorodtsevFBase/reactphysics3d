@@ -440,6 +440,8 @@ void PhysicsWorld::updateXPBD(decimal timeStep) {
 
     if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
 */
+    solveXPBD(timeStep);
+
     // Reset the external force and torque applied to the bodies
     mDynamicsSystem.resetBodiesForceAndTorque();
 
@@ -455,6 +457,24 @@ void PhysicsWorld::updateXPBD(decimal timeStep) {
 
     // Reset the single frame memory allocator
     mMemoryManager.resetFrameAllocator();
+}
+
+void PhysicsWorld::solveXPBD(decimal timeStep)
+{
+    RP3D_PROFILE("PhysicsWorld::solveXPBD()", mProfiler);
+
+    decimal timeSubStep = timeStep / decimal(mXPBDNbSubsteps);
+    for (uint i = 0; i < mNbPositionSolverIterations; i++)
+    {
+        //mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
+        ////mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
+
+        // Integrate velocities and angular velocities, positions and orientations of each body as if there are no constraints
+        mDynamicsSystem.integrateRigidBodiesXPBD(timeSubStep);
+
+        // Solve positions w.r.t. the contacts and constraints 
+        //solvePositionsXPBD(timeSubStep);
+    }
 }
 
 

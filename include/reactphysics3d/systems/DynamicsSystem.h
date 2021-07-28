@@ -94,6 +94,8 @@ class DynamicsSystem {
 
 #endif
 
+        void integrateRigidBodiesXPBD(decimal timeSubStep);
+
         /// Integrate the positions and orientations of rigid bodies.
         void integrateRigidBodiesPositions(decimal timeStep, bool isSplitImpulseActive);
 

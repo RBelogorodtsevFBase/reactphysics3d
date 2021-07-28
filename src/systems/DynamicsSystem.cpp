@@ -38,6 +38,71 @@ DynamicsSystem::DynamicsSystem(PhysicsWorld& world, CollisionBodyComponents& col
 
 }
 
+void DynamicsSystem::integrateRigidBodiesXPBD(decimal timeSubStep)
+{
+    RP3D_PROFILE("DynamicsSystem::integrateRigidBodiesXPBD()", mProfiler);
+
+    for (uint32 i=0; i < mRigidBodyComponents.getNbEnabledComponents(); i++) 
+    {
+        Entity bodyEntity = mRigidBodyComponents.mBodiesEntities[i];
+
+        // Calculate new linear acceleration and velocity
+        Vector3 linearAcceleration = mRigidBodyComponents.mInverseMasses[i] * mRigidBodyComponents.mExternalForces[i];
+        if (mIsGravityEnabled && mRigidBodyComponents.mIsGravityEnabled[i])
+        {
+            linearAcceleration += mRigidBodyComponents.mInverseMasses[i] * mRigidBodyComponents.mMasses[i] * mGravity;
+        }
+        Vector3 linearVelocity = mRigidBodyComponents.mLinearVelocities[i] + timeSubStep * linearAcceleration;
+
+        // Get current orientation of the body
+        const Quaternion& currentOrientation = mTransformComponents.getTransform(bodyEntity).getOrientation();
+
+        // Calculate new angular acceleration and velocity
+        // TODO : optimize this
+        Matrix3x3 combinedOrientation = (currentOrientation * mRigidBodyComponents.mLocalInertiaOrientations[i]).getMatrix();
+        const Vector3& inertiaLocalTensor = mRigidBodyComponents.mLocalInertiaTensors[i];
+        const Vector3& inverseInertiaLocalTensor = mRigidBodyComponents.mInverseInertiaTensorsLocal[i];
+        Matrix3x3 combinedOrientationTranspose0 = combinedOrientation.getTranspose();
+        Matrix3x3 combinedOrientationTranspose1 = combinedOrientationTranspose0;
+        combinedOrientationTranspose0[0] *= inverseInertiaLocalTensor.x;
+        combinedOrientationTranspose0[1] *= inverseInertiaLocalTensor.y;
+        combinedOrientationTranspose0[2] *= inverseInertiaLocalTensor.z;
+        Matrix3x3 worldInertiaTensorInverse = combinedOrientation * combinedOrientationTranspose0;
+        combinedOrientationTranspose1[0] *= inertiaLocalTensor.x;
+        combinedOrientationTranspose1[1] *= inertiaLocalTensor.y;
+        combinedOrientationTranspose1[2] *= inertiaLocalTensor.z;
+        Matrix3x3 worldInertiaTensor = combinedOrientation * combinedOrientationTranspose1;
+
+        Vector3 currentAngularVelocity = mRigidBodyComponents.mAngularVelocities[i];
+        Vector3 gyroscopicTorque = currentAngularVelocity.cross(worldInertiaTensor * currentAngularVelocity);
+        Vector3 angularAcceleration = worldInertiaTensorInverse * (mRigidBodyComponents.mExternalTorques[i] - gyroscopicTorque);
+        Vector3 angularVelocity = currentAngularVelocity + timeSubStep * angularAcceleration;
+
+        // Get current position of the body
+        const Vector3& currentPosition = mRigidBodyComponents.mCentersOfMassWorld[i];
+
+        // Calculate new proposed position
+        mRigidBodyComponents.mXPBDProposedPositions[i] = currentPosition + linearVelocity * timeSubStep;
+
+        // Calculate new proposed orientation
+        decimal scale = timeSubStep;
+        decimal phi = angularVelocity.length();
+
+        // Safety clamping. This happens very rarely if the solver wants to turn the body by more than 30 degrees in the orders of milliseconds
+        static const decimal MAX_ROTATION_PER_SUBSTEP(0.5);
+        if (phi * scale > MAX_ROTATION_PER_SUBSTEP)
+        {
+            scale = MAX_ROTATION_PER_SUBSTEP / phi;
+        }
+        Quaternion dq = Quaternion(angularVelocity.x * scale, angularVelocity.y * scale, angularVelocity.z * scale, decimal(0.0)) * currentOrientation;
+        mRigidBodyComponents.mXPBDProposedOrientations[i].x = currentOrientation.x + decimal(0.5) * dq.x;
+        mRigidBodyComponents.mXPBDProposedOrientations[i].y = currentOrientation.y + decimal(0.5) * dq.y;
+        mRigidBodyComponents.mXPBDProposedOrientations[i].z = currentOrientation.z + decimal(0.5) * dq.z;
+        mRigidBodyComponents.mXPBDProposedOrientations[i].w = currentOrientation.w + decimal(0.5) * dq.w;
+        mRigidBodyComponents.mXPBDProposedOrientations[i].normalize();
+    }
+}
+
 // Integrate position and orientation of the rigid bodies.
 /// The positions and orientations of the bodies are integrated using
 /// the sympletic Euler time stepping scheme.
