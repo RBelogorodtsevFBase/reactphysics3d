@@ -103,6 +103,58 @@ void DynamicsSystem::integrateRigidBodiesXPBD(decimal timeSubStep)
     }
 }
 
+void DynamicsSystem::updateBodiesStateXPBD(decimal timeSubStepInv, decimal doubleTimeSubStepInv)
+{
+    RP3D_PROFILE("DynamicsSystem::updateBodiesStateXPBD()", mProfiler);
+
+    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++)
+    {
+        // Update the linear and angular velocity of the body
+        const Vector3& position = mRigidBodyComponents.mXPBDProposedPositions[i];
+        const Vector3& previousPosition = mRigidBodyComponents.mCentersOfMassWorld[i];
+        Vector3 positionDelta = position - previousPosition;
+
+        mRigidBodyComponents.mLinearVelocities[i] = positionDelta * timeSubStepInv;
+
+        const Quaternion& orientation = mRigidBodyComponents.mXPBDProposedOrientations[i];
+        const Quaternion& previousOrientation = mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]).getOrientation();
+
+        Quaternion dq = orientation * previousOrientation.getInverse(); // TODO : there can be non-identity dq even if 
+        if (dq.w >= 0.0f)
+        {
+            mRigidBodyComponents.mAngularVelocities[i] = Vector3(dq.x * doubleTimeSubStepInv, dq.y * doubleTimeSubStepInv, dq.z * doubleTimeSubStepInv);
+        }
+        else
+        {
+            mRigidBodyComponents.mAngularVelocities[i] = Vector3(-dq.x * doubleTimeSubStepInv, -dq.y * doubleTimeSubStepInv, -dq.z * doubleTimeSubStepInv);
+        }
+
+        // Update the position of the center of mass of the body
+        mRigidBodyComponents.mCentersOfMassWorld[i] = mRigidBodyComponents.mXPBDProposedPositions[i];
+
+        // Update the orientation of the body
+        mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]).setOrientation(orientation);
+    }
+
+    // Update the position of the body (using the new center of mass and new orientation)
+    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++) {
+
+        Transform& transform = mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]);
+        const Vector3& centerOfMassWorld = mRigidBodyComponents.mCentersOfMassWorld[i];
+        const Vector3& centerOfMassLocal = mRigidBodyComponents.mCentersOfMassLocal[i];
+        transform.setPosition(centerOfMassWorld - transform.getOrientation() * centerOfMassLocal);
+    }
+
+    // THIS STUFF MUST BE DONE AFTER XPBD SUBSTEPS!
+    //// Update the local-to-world transform of the colliders
+    //for (uint32 i = 0; i < mColliderComponents.getNbEnabledComponents(); i++) {
+
+    //    // Update the local-to-world transform of the collider
+    //    mColliderComponents.mLocalToWorldTransforms[i] = mTransformComponents.getTransform(mColliderComponents.mBodiesEntities[i]) *
+    //        mColliderComponents.mLocalToBodyTransforms[i];
+    //}
+}
+
 // Integrate position and orientation of the rigid bodies.
 /// The positions and orientations of the bodies are integrated using
 /// the sympletic Euler time stepping scheme.

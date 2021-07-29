@@ -298,6 +298,8 @@ class PhysicsWorld {
 
         void solveXPBD(decimal timeStep);
 
+        void solvePositionsXPBD(decimal timeSubStep);
+
         /// Notify the world if a body is disabled (slepping or inactive) or not
         void setBodyDisabled(Entity entity, bool isDisabled);
 

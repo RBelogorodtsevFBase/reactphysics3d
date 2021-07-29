@@ -464,7 +464,10 @@ void PhysicsWorld::solveXPBD(decimal timeStep)
     RP3D_PROFILE("PhysicsWorld::solveXPBD()", mProfiler);
 
     decimal timeSubStep = timeStep / decimal(mXPBDNbSubsteps);
-    for (uint i = 0; i < mNbPositionSolverIterations; i++)
+    decimal timeSubStepInv = decimal(1.0) / timeSubStep;
+    decimal doubleTimeSubStepInv = decimal(2.0) * timeSubStepInv;
+
+    for (uint i = 0; i < mXPBDNbSubsteps; i++)
     {
         //mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
         ////mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
@@ -472,11 +475,21 @@ void PhysicsWorld::solveXPBD(decimal timeStep)
         // Integrate velocities and angular velocities, positions and orientations of each body as if there are no constraints
         mDynamicsSystem.integrateRigidBodiesXPBD(timeSubStep);
 
+        //solveContactsAndConstraints(timeStep);
         // Solve positions w.r.t. the contacts and constraints 
         //solvePositionsXPBD(timeSubStep);
+
+        // Update the state (positions and velocities) of the bodies
+        mDynamicsSystem.updateBodiesStateXPBD(timeSubStepInv, doubleTimeSubStepInv);
+
     }
 }
 
+void PhysicsWorld::solvePositionsXPBD(decimal timeSubStep)
+{
+    RP3D_PROFILE("PhysicsWorld::solvePositionsXPBD()", mProfiler);
+
+}
 
 // Solve the contacts and constraints
 void PhysicsWorld::solveContactsAndConstraints(decimal timeStep) {
