@@ -130,12 +130,16 @@ class RigidBodyComponents : public Components {
         /// Array with the constrained position of each component (for position error correction)
         Vector3* mConstrainedPositions;
 
-        Vector3* mXPBDProposedPositions;
+        Vector3* mXPBDPositions;
+
+        Vector3* mXPBDPositionsPrevious;
 
         /// Array of constrained orientation for each component (for position error correction)
         Quaternion* mConstrainedOrientations;
 
-        Quaternion* mXPBDProposedOrientations;
+        Quaternion* mXPBDOrientations;
+
+        Quaternion* mXPBDOrientationsPrevious;
 
         /// Array of center of mass of each component (in local-space coordinates)
         Vector3* mCentersOfMassLocal;
@@ -301,12 +305,8 @@ class RigidBodyComponents : public Components {
         /// Return the constrained position of an entity
         Vector3& getConstrainedPosition(Entity bodyEntity);
 
-        Vector3& getXPBDProposedPosition(Entity bodyEntity);
-
         /// Return the constrained orientation of an entity
         Quaternion& getConstrainedOrientation(Entity bodyEntity);
-
-        Quaternion& getXPBDProposedOrientation(Entity bodyEntity);
 
         /// Return the local center of mass of an entity
         const Vector3& getCenterOfMassLocal(Entity bodyEntity);
@@ -666,26 +666,12 @@ inline Vector3& RigidBodyComponents::getConstrainedPosition(Entity bodyEntity) {
    return mConstrainedPositions[mMapEntityToComponentIndex[bodyEntity]];
 }
 
-inline Vector3& RigidBodyComponents::getXPBDProposedPosition(Entity bodyEntity) {
-
-    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-    return mXPBDProposedPositions[mMapEntityToComponentIndex[bodyEntity]];
-}
-
 // Return the constrained orientation of an entity
 inline Quaternion& RigidBodyComponents::getConstrainedOrientation(Entity bodyEntity) {
 
    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
 
    return mConstrainedOrientations[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-inline Quaternion& RigidBodyComponents::getXPBDProposedOrientation(Entity bodyEntity) {
-
-    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-    return mXPBDProposedOrientations[mMapEntityToComponentIndex[bodyEntity]];
 }
 
 // Return the local center of mass of an entity
@@ -744,26 +730,12 @@ inline void RigidBodyComponents::setConstrainedPosition(Entity bodyEntity, const
    mConstrainedPositions[mMapEntityToComponentIndex[bodyEntity]] = constrainedPosition;
 }
 
-inline void RigidBodyComponents::setXPBDProposedPosition(Entity bodyEntity, const Vector3& proposedPosition) {
-
-    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-    mXPBDProposedPositions[mMapEntityToComponentIndex[bodyEntity]] = proposedPosition;
-}
-
 // Set the constrained orientation of an entity
 inline void RigidBodyComponents::setConstrainedOrientation(Entity bodyEntity, const Quaternion& constrainedOrientation) {
 
    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
 
    mConstrainedOrientations[mMapEntityToComponentIndex[bodyEntity]] = constrainedOrientation;
-}
-
-inline void RigidBodyComponents::setXPBDProposedOrientation(Entity bodyEntity, const Quaternion& proposedOrientation) {
-
-    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-    mXPBDProposedOrientations[mMapEntityToComponentIndex[bodyEntity]] = proposedOrientation;
 }
 
 // Set the local center of mass of an entity

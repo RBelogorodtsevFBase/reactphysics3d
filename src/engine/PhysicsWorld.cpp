@@ -419,28 +419,28 @@ void PhysicsWorld::updateXPBD(decimal timeStep) {
 
     // Disable the joints for pair of sleeping bodies
     disableJointsOfSleepingBodies();
-/*
-    // Integrate the velocities
-    mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
 
-    // Solve the contacts and constraints
-    solveContactsAndConstraints(timeStep);
+    //// Integrate the velocities
+    //mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
 
-    // Integrate the position and orientation of each body
-    mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
+    //// Solve the contacts and constraints
+    //solveContactsAndConstraints(timeStep);
 
-    // Solve the position correction for constraints
-    solvePositionCorrection();
+    //// Integrate the position and orientation of each body
+    //mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
 
-    // Update the state (positions and velocities) of the bodies
-    mDynamicsSystem.updateBodiesState();
+    //// Solve the position correction for constraints
+    //solvePositionCorrection();
 
-    // Update the colliders components
+    //// Update the state (positions and velocities) of the bodies
+    //mDynamicsSystem.updateBodiesState();
+
+    solveXPBD(timeStep);
+
+    //// Update the colliders components
     mCollisionDetection.updateColliders(timeStep);
 
     if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
-*/
-    solveXPBD(timeStep);
 
     // Reset the external force and torque applied to the bodies
     mDynamicsSystem.resetBodiesForceAndTorque();
@@ -467,22 +467,29 @@ void PhysicsWorld::solveXPBD(decimal timeStep)
     decimal timeSubStepInv = decimal(1.0) / timeSubStep;
     decimal doubleTimeSubStepInv = decimal(2.0) * timeSubStepInv;
 
+    mDynamicsSystem.initPositionsOrientationsXPBD();
     for (uint i = 0; i < mXPBDNbSubsteps; i++)
     {
+        mDynamicsSystem.backUpPositionsOrientationsXPBD();
+
         //mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
         ////mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
 
-        // Integrate velocities and angular velocities, positions and orientations of each body as if there are no constraints
+        // Integrate position and orientation of each body as if there are no constraints
         mDynamicsSystem.integrateRigidBodiesXPBD(timeSubStep);
 
         //solveContactsAndConstraints(timeStep);
         // Solve positions w.r.t. the contacts and constraints 
-        //solvePositionsXPBD(timeSubStep);
+        //solvePositionXPBD(timeSubStep);
 
-        // Update the state (positions and velocities) of the bodies
-        mDynamicsSystem.updateBodiesStateXPBD(timeSubStepInv, doubleTimeSubStepInv);
+        // Calculate linear and angular velocities
+        mDynamicsSystem.infereVelocitiesXPBD(timeSubStepInv, doubleTimeSubStepInv);
 
+        // Solve velocities w.r.t. the contacts and constraints 
+        //solveVelocityXPBD(timeSubStep);
     }
+
+    mDynamicsSystem.updateBodiesStatesXPBD();
 }
 
 void PhysicsWorld::solvePositionsXPBD(decimal timeSubStep)

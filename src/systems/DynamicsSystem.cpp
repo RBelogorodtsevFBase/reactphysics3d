@@ -38,14 +38,37 @@ DynamicsSystem::DynamicsSystem(PhysicsWorld& world, CollisionBodyComponents& col
 
 }
 
+void DynamicsSystem::initPositionsOrientationsXPBD()
+{
+    RP3D_PROFILE("DynamicsSystem::initXPBDPositionsOrientations()", mProfiler);
+
+    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++)
+    {
+        const Vector3& position = mRigidBodyComponents.mCentersOfMassWorld[i];
+        const Quaternion& orientation = mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]).getOrientation();
+
+        mRigidBodyComponents.mXPBDPositions[i] = position;
+        mRigidBodyComponents.mXPBDOrientations[i] = orientation;
+    }
+}
+
+void DynamicsSystem::backUpPositionsOrientationsXPBD()
+{
+    RP3D_PROFILE("DynamicsSystem::backUpPositionsOrientationsXPBD()", mProfiler);
+
+    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++)
+    {
+        mRigidBodyComponents.mXPBDPositionsPrevious[i] = mRigidBodyComponents.mXPBDPositions[i];
+        mRigidBodyComponents.mXPBDOrientationsPrevious[i] = mRigidBodyComponents.mXPBDOrientations[i];
+    }
+}
+
 void DynamicsSystem::integrateRigidBodiesXPBD(decimal timeSubStep)
 {
     RP3D_PROFILE("DynamicsSystem::integrateRigidBodiesXPBD()", mProfiler);
 
     for (uint32 i=0; i < mRigidBodyComponents.getNbEnabledComponents(); i++) 
     {
-        Entity bodyEntity = mRigidBodyComponents.mBodiesEntities[i];
-
         // Calculate new linear acceleration and velocity
         Vector3 linearAcceleration = mRigidBodyComponents.mInverseMasses[i] * mRigidBodyComponents.mExternalForces[i];
         if (mIsGravityEnabled && mRigidBodyComponents.mIsGravityEnabled[i])
@@ -53,38 +76,39 @@ void DynamicsSystem::integrateRigidBodiesXPBD(decimal timeSubStep)
             linearAcceleration += mRigidBodyComponents.mInverseMasses[i] * mRigidBodyComponents.mMasses[i] * mGravity;
         }
         Vector3 linearVelocity = mRigidBodyComponents.mLinearVelocities[i] + timeSubStep * linearAcceleration;
+        // Calculate new position
+        mRigidBodyComponents.mXPBDPositions[i] += linearVelocity * timeSubStep;
 
         // Get current orientation of the body
-        const Quaternion& currentOrientation = mTransformComponents.getTransform(bodyEntity).getOrientation();
+        const Quaternion& currentOrientation = mRigidBodyComponents.mXPBDOrientations[i];
 
         // Calculate new angular acceleration and velocity
         // TODO : optimize this
         Matrix3x3 combinedOrientation = (currentOrientation * mRigidBodyComponents.mLocalInertiaOrientations[i]).getMatrix();
         const Vector3& inertiaLocalTensor = mRigidBodyComponents.mLocalInertiaTensors[i];
         const Vector3& inverseInertiaLocalTensor = mRigidBodyComponents.mInverseInertiaTensorsLocal[i];
+
         Matrix3x3 combinedOrientationTranspose0 = combinedOrientation.getTranspose();
         Matrix3x3 combinedOrientationTranspose1 = combinedOrientationTranspose0;
+
         combinedOrientationTranspose0[0] *= inverseInertiaLocalTensor.x;
         combinedOrientationTranspose0[1] *= inverseInertiaLocalTensor.y;
         combinedOrientationTranspose0[2] *= inverseInertiaLocalTensor.z;
         Matrix3x3 worldInertiaTensorInverse = combinedOrientation * combinedOrientationTranspose0;
+
         combinedOrientationTranspose1[0] *= inertiaLocalTensor.x;
         combinedOrientationTranspose1[1] *= inertiaLocalTensor.y;
         combinedOrientationTranspose1[2] *= inertiaLocalTensor.z;
         Matrix3x3 worldInertiaTensor = combinedOrientation * combinedOrientationTranspose1;
 
-        Vector3 currentAngularVelocity = mRigidBodyComponents.mAngularVelocities[i];
+        const Vector3 & currentAngularVelocity = mRigidBodyComponents.mAngularVelocities[i];
+
         Vector3 gyroscopicTorque = currentAngularVelocity.cross(worldInertiaTensor * currentAngularVelocity);
+
         Vector3 angularAcceleration = worldInertiaTensorInverse * (mRigidBodyComponents.mExternalTorques[i] - gyroscopicTorque);
         Vector3 angularVelocity = currentAngularVelocity + timeSubStep * angularAcceleration;
 
-        // Get current position of the body
-        const Vector3& currentPosition = mRigidBodyComponents.mCentersOfMassWorld[i];
-
-        // Calculate new proposed position
-        mRigidBodyComponents.mXPBDProposedPositions[i] = currentPosition + linearVelocity * timeSubStep;
-
-        // Calculate new proposed orientation
+        // Calculate new orientation
         decimal scale = timeSubStep;
         decimal phi = angularVelocity.length();
 
@@ -95,32 +119,26 @@ void DynamicsSystem::integrateRigidBodiesXPBD(decimal timeSubStep)
             scale = MAX_ROTATION_PER_SUBSTEP / phi;
         }
         Quaternion dq = Quaternion(angularVelocity.x * scale, angularVelocity.y * scale, angularVelocity.z * scale, decimal(0.0)) * currentOrientation;
-        mRigidBodyComponents.mXPBDProposedOrientations[i].x = currentOrientation.x + decimal(0.5) * dq.x;
-        mRigidBodyComponents.mXPBDProposedOrientations[i].y = currentOrientation.y + decimal(0.5) * dq.y;
-        mRigidBodyComponents.mXPBDProposedOrientations[i].z = currentOrientation.z + decimal(0.5) * dq.z;
-        mRigidBodyComponents.mXPBDProposedOrientations[i].w = currentOrientation.w + decimal(0.5) * dq.w;
-        mRigidBodyComponents.mXPBDProposedOrientations[i].normalize();
+        mRigidBodyComponents.mXPBDOrientations[i].x += decimal(0.5) * dq.x;
+        mRigidBodyComponents.mXPBDOrientations[i].y += decimal(0.5) * dq.y;
+        mRigidBodyComponents.mXPBDOrientations[i].z += decimal(0.5) * dq.z;
+        mRigidBodyComponents.mXPBDOrientations[i].w += decimal(0.5) * dq.w;
+        mRigidBodyComponents.mXPBDOrientations[i].normalize();
     }
 }
 
-void DynamicsSystem::updateBodiesStateXPBD(decimal timeSubStepInv, decimal doubleTimeSubStepInv)
+void DynamicsSystem::infereVelocitiesXPBD(decimal timeSubStepInv, decimal doubleTimeSubStepInv)
 {
-    RP3D_PROFILE("DynamicsSystem::updateBodiesStateXPBD()", mProfiler);
+    RP3D_PROFILE("DynamicsSystem::infereVelocitiesXPBD()", mProfiler);
 
     for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++)
     {
         // Update the linear and angular velocity of the body
-        const Vector3& position = mRigidBodyComponents.mXPBDProposedPositions[i];
-        const Vector3& previousPosition = mRigidBodyComponents.mCentersOfMassWorld[i];
-        Vector3 positionDelta = position - previousPosition;
-
+        Vector3 positionDelta = mRigidBodyComponents.mXPBDPositions[i] - mRigidBodyComponents.mXPBDPositionsPrevious[i];
         mRigidBodyComponents.mLinearVelocities[i] = positionDelta * timeSubStepInv;
 
-        const Quaternion& orientation = mRigidBodyComponents.mXPBDProposedOrientations[i];
-        const Quaternion& previousOrientation = mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]).getOrientation();
-
-        Quaternion dq = orientation * previousOrientation.getInverse(); // TODO : there can be non-identity dq even if 
-        if (dq.w >= 0.0f)
+        Quaternion dq = mRigidBodyComponents.mXPBDOrientations[i] * mRigidBodyComponents.mXPBDOrientationsPrevious[i].getInverse(); // TODO : there can be non-identity dq even if orientation == previousOrientation
+        if (dq.w >= decimal(0.0))
         {
             mRigidBodyComponents.mAngularVelocities[i] = Vector3(dq.x * doubleTimeSubStepInv, dq.y * doubleTimeSubStepInv, dq.z * doubleTimeSubStepInv);
         }
@@ -128,32 +146,41 @@ void DynamicsSystem::updateBodiesStateXPBD(decimal timeSubStepInv, decimal doubl
         {
             mRigidBodyComponents.mAngularVelocities[i] = Vector3(-dq.x * doubleTimeSubStepInv, -dq.y * doubleTimeSubStepInv, -dq.z * doubleTimeSubStepInv);
         }
+    }
+}
 
+
+void DynamicsSystem::updateBodiesStatesXPBD()
+{
+    RP3D_PROFILE("DynamicsSystem::updateBodiesStatesXPBD()", mProfiler);
+
+    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++)
+    {
         // Update the position of the center of mass of the body
-        mRigidBodyComponents.mCentersOfMassWorld[i] = mRigidBodyComponents.mXPBDProposedPositions[i];
+        mRigidBodyComponents.mCentersOfMassWorld[i] = mRigidBodyComponents.mXPBDPositions[i];
 
         // Update the orientation of the body
-        mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]).setOrientation(orientation);
+        mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]).setOrientation(mRigidBodyComponents.mXPBDOrientations[i]);
     }
 
     // Update the position of the body (using the new center of mass and new orientation)
-    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++) {
-
+    for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++) 
+    {
         Transform& transform = mTransformComponents.getTransform(mRigidBodyComponents.mBodiesEntities[i]);
         const Vector3& centerOfMassWorld = mRigidBodyComponents.mCentersOfMassWorld[i];
         const Vector3& centerOfMassLocal = mRigidBodyComponents.mCentersOfMassLocal[i];
         transform.setPosition(centerOfMassWorld - transform.getOrientation() * centerOfMassLocal);
     }
 
-    // THIS STUFF MUST BE DONE AFTER XPBD SUBSTEPS!
-    //// Update the local-to-world transform of the colliders
-    //for (uint32 i = 0; i < mColliderComponents.getNbEnabledComponents(); i++) {
-
-    //    // Update the local-to-world transform of the collider
-    //    mColliderComponents.mLocalToWorldTransforms[i] = mTransformComponents.getTransform(mColliderComponents.mBodiesEntities[i]) *
-    //        mColliderComponents.mLocalToBodyTransforms[i];
-    //}
+    // Update the local-to-world transform of the colliders
+    for (uint32 i = 0; i < mColliderComponents.getNbEnabledComponents(); i++) 
+    {
+        // Update the local-to-world transform of the collider
+        mColliderComponents.mLocalToWorldTransforms[i] = mTransformComponents.getTransform(mColliderComponents.mBodiesEntities[i]) * mColliderComponents.mLocalToBodyTransforms[i];
+    }
 }
+
+
 
 // Integrate position and orientation of the rigid bodies.
 /// The positions and orientations of the bodies are integrated using

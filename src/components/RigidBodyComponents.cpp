@@ -37,7 +37,8 @@ using namespace reactphysics3d;
 RigidBodyComponents::RigidBodyComponents(MemoryAllocator& allocator)
                     :Components(allocator, sizeof(Entity) + sizeof(RigidBody*) +
                                 sizeof(bool) + sizeof(bool) + sizeof(decimal) + sizeof(BodyType) +
-                                sizeof(Quaternion) + sizeof(Vector3) + sizeof(Quaternion) +
+                                sizeof(Quaternion) + 
+                                sizeof(Vector3) + sizeof(Vector3) + sizeof(Quaternion) + sizeof(Quaternion) +
                                 sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
                                 sizeof(Vector3) + sizeof(decimal) + sizeof(decimal) +
                                 sizeof(decimal) + sizeof(decimal) + sizeof(Vector3) +
@@ -85,10 +86,12 @@ void RigidBodyComponents::allocate(uint32 nbComponentsToAllocate) {
     Vector3* newSplitLinearVelocities = reinterpret_cast<Vector3*>(newConstrainedAngularVelocities + nbComponentsToAllocate);
     Vector3* newSplitAngularVelocities = reinterpret_cast<Vector3*>(newSplitLinearVelocities + nbComponentsToAllocate);
     Vector3* newConstrainedPositions = reinterpret_cast<Vector3*>(newSplitAngularVelocities + nbComponentsToAllocate);
-    Vector3* newXPBDProposedPositions = reinterpret_cast<Vector3*>(newConstrainedPositions + nbComponentsToAllocate);
-    Quaternion* newConstrainedOrientations = reinterpret_cast<Quaternion*>(newXPBDProposedPositions + nbComponentsToAllocate);
-    Quaternion* newXPBDProposedOrientations = reinterpret_cast<Quaternion*>(newConstrainedOrientations + nbComponentsToAllocate);
-    Vector3* newCentersOfMassLocal = reinterpret_cast<Vector3*>(newXPBDProposedOrientations + nbComponentsToAllocate);
+    Vector3* newXPBDPositions = reinterpret_cast<Vector3*>(newConstrainedPositions + nbComponentsToAllocate);
+    Vector3* newXPBDPositionsPrevious = reinterpret_cast<Vector3*>(newXPBDPositions + nbComponentsToAllocate);
+    Quaternion* newConstrainedOrientations = reinterpret_cast<Quaternion*>(newXPBDPositionsPrevious + nbComponentsToAllocate);
+    Quaternion* newXPBDOrientations = reinterpret_cast<Quaternion*>(newConstrainedOrientations + nbComponentsToAllocate);
+    Quaternion* newXPBDOrientationsPrevious = reinterpret_cast<Quaternion*>(newXPBDOrientations + nbComponentsToAllocate);
+    Vector3* newCentersOfMassLocal = reinterpret_cast<Vector3*>(newXPBDOrientationsPrevious + nbComponentsToAllocate);
     Vector3* newCentersOfMassWorld = reinterpret_cast<Vector3*>(newCentersOfMassLocal + nbComponentsToAllocate);
     bool* newIsGravityEnabled = reinterpret_cast<bool*>(newCentersOfMassWorld + nbComponentsToAllocate);
     bool* newIsAlreadyInIsland = reinterpret_cast<bool*>(newIsGravityEnabled + nbComponentsToAllocate);
@@ -120,9 +123,11 @@ void RigidBodyComponents::allocate(uint32 nbComponentsToAllocate) {
         memcpy(newSplitLinearVelocities, mSplitLinearVelocities, mNbComponents * sizeof(Vector3));
         memcpy(newSplitAngularVelocities, mSplitAngularVelocities, mNbComponents * sizeof(Vector3));
         memcpy(newConstrainedPositions, mConstrainedPositions, mNbComponents * sizeof(Vector3));
-        memcpy(newXPBDProposedPositions, mXPBDProposedPositions, mNbComponents * sizeof(Vector3));
+        memcpy(newXPBDPositions, mXPBDPositions, mNbComponents * sizeof(Vector3));
+        memcpy(newXPBDPositionsPrevious, mXPBDPositionsPrevious, mNbComponents * sizeof(Vector3));
         memcpy(newConstrainedOrientations, mConstrainedOrientations, mNbComponents * sizeof(Quaternion));
-        memcpy(newXPBDProposedOrientations, mXPBDProposedOrientations, mNbComponents * sizeof(Quaternion));
+        memcpy(newXPBDOrientations, mXPBDOrientations, mNbComponents * sizeof(Quaternion));
+        memcpy(newXPBDOrientationsPrevious, mXPBDOrientationsPrevious, mNbComponents * sizeof(Quaternion));
         memcpy(newCentersOfMassLocal, mCentersOfMassLocal, mNbComponents * sizeof(Vector3));
         memcpy(newCentersOfMassWorld, mCentersOfMassWorld, mNbComponents * sizeof(Vector3));
         memcpy(newIsGravityEnabled, mIsGravityEnabled, mNbComponents * sizeof(bool));
@@ -157,9 +162,11 @@ void RigidBodyComponents::allocate(uint32 nbComponentsToAllocate) {
     mSplitLinearVelocities = newSplitLinearVelocities;
     mSplitAngularVelocities = newSplitAngularVelocities;
     mConstrainedPositions = newConstrainedPositions;
-    mXPBDProposedPositions = newXPBDProposedPositions;
+    mXPBDPositions = newXPBDPositions;
+    mXPBDPositionsPrevious = newXPBDPositionsPrevious;
     mConstrainedOrientations = newConstrainedOrientations;
-    mXPBDProposedOrientations = newXPBDProposedOrientations;
+    mXPBDOrientations = newXPBDOrientations;
+    mXPBDOrientationsPrevious = newXPBDOrientationsPrevious;
     mCentersOfMassLocal = newCentersOfMassLocal;
     mCentersOfMassWorld = newCentersOfMassWorld;
     mIsGravityEnabled = newIsGravityEnabled;
@@ -196,9 +203,11 @@ void RigidBodyComponents::addComponent(Entity bodyEntity, bool isSleeping, const
     new (mSplitLinearVelocities + index) Vector3(0, 0, 0);
     new (mSplitAngularVelocities + index) Vector3(0, 0, 0);
     new (mConstrainedPositions + index) Vector3(0, 0, 0);
-    new (mXPBDProposedPositions + index) Vector3(0, 0, 0);
+    new (mXPBDPositions + index) Vector3(0, 0, 0);
+    new (mXPBDPositionsPrevious + index) Vector3(0, 0, 0);
     new (mConstrainedOrientations + index) Quaternion(0, 0, 0, 1);
-    new (mXPBDProposedOrientations + index) Quaternion(0, 0, 0, 1);
+    new (mXPBDOrientations + index) Quaternion(0, 0, 0, 1);
+    new (mXPBDOrientationsPrevious + index) Quaternion(0, 0, 0, 1);
     new (mCentersOfMassLocal + index) Vector3(0, 0, 0);
     new (mCentersOfMassWorld + index) Vector3(component.worldPosition);
     mIsGravityEnabled[index] = true;
@@ -243,9 +252,11 @@ void RigidBodyComponents::moveComponentToIndex(uint32 srcIndex, uint32 destIndex
     new (mSplitLinearVelocities + destIndex) Vector3(mSplitLinearVelocities[srcIndex]);
     new (mSplitAngularVelocities + destIndex) Vector3(mSplitAngularVelocities[srcIndex]);
     new (mConstrainedPositions + destIndex) Vector3(mConstrainedPositions[srcIndex]);
-    new (mXPBDProposedPositions + destIndex) Vector3(mXPBDProposedPositions[srcIndex]);
+    new (mXPBDPositions + destIndex) Vector3(mXPBDPositions[srcIndex]);
+    new (mXPBDPositionsPrevious + destIndex) Vector3(mXPBDPositionsPrevious[srcIndex]);
     new (mConstrainedOrientations + destIndex) Quaternion(mConstrainedOrientations[srcIndex]);
-    new (mXPBDProposedOrientations + destIndex) Quaternion(mXPBDProposedOrientations[srcIndex]);
+    new (mXPBDOrientations + destIndex) Quaternion(mXPBDOrientations[srcIndex]);
+    new (mXPBDOrientationsPrevious + destIndex) Quaternion(mXPBDOrientationsPrevious[srcIndex]);
     new (mCentersOfMassLocal + destIndex) Vector3(mCentersOfMassLocal[srcIndex]);
     new (mCentersOfMassWorld + destIndex) Vector3(mCentersOfMassWorld[srcIndex]);
     mIsGravityEnabled[destIndex] = mIsGravityEnabled[srcIndex];
@@ -289,9 +300,11 @@ void RigidBodyComponents::swapComponents(uint32 index1, uint32 index2) {
     Vector3 splitLinearVelocity1(mSplitLinearVelocities[index1]);
     Vector3 splitAngularVelocity1(mSplitAngularVelocities[index1]);
     Vector3 constrainedPosition1 = mConstrainedPositions[index1];
-    Vector3 XPBDProposedPosition1 = mXPBDProposedPositions[index1];
+    Vector3 XPBDPosition1 = mXPBDPositions[index1];
+    Vector3 XPBDPositionPrevious1 = mXPBDPositionsPrevious[index1];
     Quaternion constrainedOrientation1 = mConstrainedOrientations[index1];
-    Quaternion XPBDProposedOrientation1 = mXPBDProposedOrientations[index1];
+    Quaternion XPBDOrientation1 = mXPBDOrientations[index1];
+    Quaternion XPBDOrientationPrevious1 = mXPBDOrientationsPrevious[index1];
     Vector3 centerOfMassLocal1 = mCentersOfMassLocal[index1];
     Vector3 centerOfMassWorld1 = mCentersOfMassWorld[index1];
     bool isGravityEnabled1 = mIsGravityEnabled[index1];
@@ -326,9 +339,11 @@ void RigidBodyComponents::swapComponents(uint32 index1, uint32 index2) {
     new (mSplitLinearVelocities + index2) Vector3(splitLinearVelocity1);
     new (mSplitAngularVelocities + index2) Vector3(splitAngularVelocity1);
     mConstrainedPositions[index2] = constrainedPosition1;
-    mXPBDProposedPositions[index2] = XPBDProposedPosition1;
+    mXPBDPositions[index2] = XPBDPosition1;
+    mXPBDPositionsPrevious[index2] = XPBDPositionPrevious1;
     mConstrainedOrientations[index2] = constrainedOrientation1;
-    mXPBDProposedOrientations[index2] = XPBDProposedOrientation1;
+    mXPBDOrientations[index2] = XPBDOrientation1;
+    mXPBDOrientationsPrevious[index2] = XPBDOrientationPrevious1;
     mCentersOfMassLocal[index2] = centerOfMassLocal1;
     mCentersOfMassWorld[index2] = centerOfMassWorld1;
     mIsGravityEnabled[index2] = isGravityEnabled1;
@@ -366,9 +381,11 @@ void RigidBodyComponents::destroyComponent(uint32 index) {
     mSplitLinearVelocities[index].~Vector3();
     mSplitAngularVelocities[index].~Vector3();
     mConstrainedPositions[index].~Vector3();
-    mXPBDProposedPositions[index].~Vector3();
+    mXPBDPositions[index].~Vector3();
+    mXPBDPositionsPrevious[index].~Vector3();
     mConstrainedOrientations[index].~Quaternion();
-    mXPBDProposedOrientations[index].~Quaternion();
+    mXPBDOrientations[index].~Quaternion();
+    mXPBDOrientationsPrevious[index].~Quaternion();
     mCentersOfMassLocal[index].~Vector3();
     mCentersOfMassWorld[index].~Vector3();
     mJoints[index].~List<Entity>();

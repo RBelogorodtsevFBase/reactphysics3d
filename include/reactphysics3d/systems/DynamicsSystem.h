@@ -94,9 +94,15 @@ class DynamicsSystem {
 
 #endif
 
+        void initPositionsOrientationsXPBD();
+
+        void backUpPositionsOrientationsXPBD();
+
         void integrateRigidBodiesXPBD(decimal timeSubStep);
 
-        void updateBodiesStateXPBD(decimal timeSubStepInv, decimal doubleTimeSubStepInv);
+        void infereVelocitiesXPBD(decimal timeSubStepInv, decimal doubleTimeSubStepInv);
+
+        void updateBodiesStatesXPBD();
 
         /// Integrate the positions and orientations of rigid bodies.
         void integrateRigidBodiesPositions(decimal timeStep, bool isSplitImpulseActive);
