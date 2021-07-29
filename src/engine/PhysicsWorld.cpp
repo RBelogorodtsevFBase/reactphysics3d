@@ -472,15 +472,12 @@ void PhysicsWorld::solveXPBD(decimal timeStep)
     {
         mDynamicsSystem.backUpPositionsOrientationsXPBD();
 
-        //mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
-        ////mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
-
         // Integrate position and orientation of each body as if there are no constraints
         mDynamicsSystem.integrateRigidBodiesXPBD(timeSubStep);
 
         //solveContactsAndConstraints(timeStep);
         // Solve positions w.r.t. the contacts and constraints 
-        //solvePositionXPBD(timeSubStep);
+        solveContactsAndConstraintsPositionXPBD(timeSubStep);
 
         // Calculate linear and angular velocities
         mDynamicsSystem.infereVelocitiesXPBD(timeSubStepInv, doubleTimeSubStepInv);
@@ -492,10 +489,24 @@ void PhysicsWorld::solveXPBD(decimal timeStep)
     mDynamicsSystem.updateBodiesStatesXPBD();
 }
 
-void PhysicsWorld::solvePositionsXPBD(decimal timeSubStep)
+void PhysicsWorld::solveContactsAndConstraintsPositionXPBD(decimal timeSubStep)
 {
-    RP3D_PROFILE("PhysicsWorld::solvePositionsXPBD()", mProfiler);
+    RP3D_PROFILE("PhysicsWorld::solveContactsAndConstraintsPositionXPBD()", mProfiler);
 
+    // Initialize the constraint solver
+    //mConstraintSolverSystem.initialize(timeStep);
+    //// Initialize the contact solver
+    //mContactSolverSystem.init(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeStep);
+
+    mConstraintSolverSystem.solvePositionXPBD(timeSubStep);
+
+    //mConstraintSolverSystem.solveVelocityConstraints();
+    //mContactSolverSystem.solve(); 
+
+    //mContactSolverSystem.storeImpulses(); ???
+
+    // Reset the contact solver
+    //mContactSolverSystem.reset(); ???
 }
 
 // Solve the contacts and constraints

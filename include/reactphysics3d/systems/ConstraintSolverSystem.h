@@ -194,6 +194,8 @@ class ConstraintSolverSystem {
         /// Destructor
         ~ConstraintSolverSystem() = default;
 
+        void solvePositionXPBD(decimal timeSubStep);
+
         /// Initialize the constraint solver
         void initialize(decimal dt);
 

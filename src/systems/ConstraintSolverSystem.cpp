@@ -56,6 +56,16 @@ ConstraintSolverSystem::ConstraintSolverSystem(PhysicsWorld& world, Islands& isl
 
 }
 
+void ConstraintSolverSystem::solvePositionXPBD(decimal timeSubStep)
+{
+    RP3D_PROFILE("ConstraintSolverSystem::solvePositionXPBD()", mProfiler);
+
+    mSolveBallAndSocketJointSystem.solvePositionXPBD(timeSubStep);
+    //mSolveFixedJointSystem.solvePositionXPBD(timeSubStep);
+    //mSolveHingeJointSystem.solvePositionXPBD(timeSubStep);
+    //mSolveSliderJointSystem.solvePositionXPBD(timeSubStep);
+}
+
 // Initialize the constraint solver
 void ConstraintSolverSystem::initialize(decimal dt) {
 
