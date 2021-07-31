@@ -62,6 +62,14 @@ void BallAndSocketJoint::enableLimits(bool swingX, bool swingY, bool twist)
     awakeBodies();
 }
 
+void BallAndSocketJoint::setLimits(const Vector3 & minAngles, const Vector3 & maxAngles)
+{
+    mWorld.mBallAndSocketJointsComponents.setLimitsAnglesMin(mEntity, minAngles);
+    mWorld.mBallAndSocketJointsComponents.setLimitsAnglesMax(mEntity, maxAngles);
+
+    awakeBodies();
+}
+
 // Return a string representation
 std::string BallAndSocketJoint::to_string() const {
 

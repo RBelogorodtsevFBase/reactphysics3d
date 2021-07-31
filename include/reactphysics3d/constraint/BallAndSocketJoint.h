@@ -106,7 +106,7 @@ class BallAndSocketJoint : public Joint {
         void setLimits(const Vector3 & minAngles, const Vector3 & maxAngles);
 
         /// Set joint spring parameters
-        void setSpringParams(const Vector3 & stiffness, const Vector3 & damping);
+        void setSpringParams(const Vector3 & stiffnessPositive, const Vector3 & stiffnessNegative, const Vector3 & damping);
 
         /// Set joint spring target
         void setSpringTarget(const Vector3 & angles);

@@ -68,6 +68,10 @@ class BallAndSocketJointComponents : public Components {
 
         Quaternion * mReferenceLocalInBody2;
 
+        Vector3 * mLimitsAnglesMin;
+
+        Vector3 * mLimitsAnglesMax;
+
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
 
@@ -145,6 +149,10 @@ class BallAndSocketJointComponents : public Components {
         void setReferenceLocalInBody2(Entity jointEntity, const Quaternion & referenceLocalInBody2);
 
         void enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist);
+
+        void setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles);
+
+        void setLimitsAnglesMax(Entity jointEntity, const Vector3 & angles);
 
         /// Set the local anchor point of body 1 for a given joint
         void setLocalAnchorPointBody1(Entity jointEntity, const Vector3& localAnchoirPointBody1);
@@ -236,6 +244,18 @@ inline void BallAndSocketJointComponents::enableLimits(Entity jointEntity, bool 
     mLimitSwingXEnabled[index] = swingX;
     mLimitSwingYEnabled[index] = swingY;
     mLimitTwistEnabled[index] = twist;
+}
+
+inline void BallAndSocketJointComponents::setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mLimitsAnglesMin[mMapEntityToComponentIndex[jointEntity]] = angles;
+}
+
+inline void BallAndSocketJointComponents::setLimitsAnglesMax(Entity jointEntity, const Vector3 & angles)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mLimitsAnglesMax[mMapEntityToComponentIndex[jointEntity]] = angles;
 }
 
 // Return the local anchor point of body 1 for a given joint
