@@ -72,6 +72,12 @@ class BallAndSocketJointComponents : public Components {
 
         Vector3 * mLimitsAnglesMax;
 
+        Vector3 * mStiffnessesPositive;
+
+        Vector3 * mStiffnessesNegative;
+
+        Vector3 * mDampings;
+
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
 
@@ -153,6 +159,12 @@ class BallAndSocketJointComponents : public Components {
         void setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles);
 
         void setLimitsAnglesMax(Entity jointEntity, const Vector3 & angles);
+
+        void setStiffnessPositive(Entity jointEntity, const Vector3 & stiffnesses);
+
+        void setStiffnessNegative(Entity jointEntity, const Vector3 & stiffnesses);
+
+        void setDamping(Entity jointEntity, const Vector3 & dampings);
 
         /// Set the local anchor point of body 1 for a given joint
         void setLocalAnchorPointBody1(Entity jointEntity, const Vector3& localAnchoirPointBody1);
@@ -256,6 +268,24 @@ inline void BallAndSocketJointComponents::setLimitsAnglesMax(Entity jointEntity,
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mLimitsAnglesMax[mMapEntityToComponentIndex[jointEntity]] = angles;
+}
+
+inline void BallAndSocketJointComponents::setStiffnessPositive(Entity jointEntity, const Vector3 & stiffnesses)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mStiffnessesPositive[mMapEntityToComponentIndex[jointEntity]] = stiffnesses;
+}
+
+inline void BallAndSocketJointComponents::setStiffnessNegative(Entity jointEntity, const Vector3 & stiffnesses)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mStiffnessesNegative[mMapEntityToComponentIndex[jointEntity]] = stiffnesses;
+}
+
+inline void BallAndSocketJointComponents::setDamping(Entity jointEntity, const Vector3 & dampings)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mDampings[mMapEntityToComponentIndex[jointEntity]] = dampings;
 }
 
 // Return the local anchor point of body 1 for a given joint

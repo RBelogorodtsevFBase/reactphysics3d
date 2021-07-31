@@ -70,6 +70,15 @@ void BallAndSocketJoint::setLimits(const Vector3 & minAngles, const Vector3 & ma
     awakeBodies();
 }
 
+void BallAndSocketJoint::setSpringParams(const Vector3 & stiffnessPositive, const Vector3 & stiffnessNegative, const Vector3 & damping)
+{
+    mWorld.mBallAndSocketJointsComponents.setStiffnessPositive(mEntity, stiffnessPositive);
+    mWorld.mBallAndSocketJointsComponents.setStiffnessNegative(mEntity, stiffnessNegative);
+    mWorld.mBallAndSocketJointsComponents.setDamping(mEntity, damping);
+
+    awakeBodies();
+}
+
 // Return a string representation
 std::string BallAndSocketJoint::to_string() const {
 

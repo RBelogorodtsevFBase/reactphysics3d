@@ -39,6 +39,7 @@ BallAndSocketJointComponents::BallAndSocketJointComponents(MemoryAllocator& allo
                                 sizeof(Quaternion) + sizeof(Quaternion) +
                                 sizeof(Vector3) + sizeof(Vector3) +
                                 sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
+                                sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
                                 sizeof(Matrix3x3) + sizeof(Matrix3x3) + sizeof(Vector3) +
                                 sizeof(Matrix3x3) + sizeof(Vector3)) {
 
@@ -68,7 +69,10 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     Quaternion * newReferenceLocalInBody2 = reinterpret_cast<Quaternion *>(newTargetLocalInBody1 + nbComponentsToAllocate);
     Vector3 * newLimitsAnglesMin = reinterpret_cast<Vector3 *>(newReferenceLocalInBody2 + nbComponentsToAllocate);
     Vector3 * newLimitsAnglesMax = reinterpret_cast<Vector3 *>(newLimitsAnglesMin + nbComponentsToAllocate);
-    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newLimitsAnglesMax + nbComponentsToAllocate);
+    Vector3 * newStiffnessesPositive = reinterpret_cast<Vector3 *>(newLimitsAnglesMax + nbComponentsToAllocate);
+    Vector3 * newStiffnessesNegative = reinterpret_cast<Vector3 *>(newStiffnessesPositive + nbComponentsToAllocate);
+    Vector3 * newDampings = reinterpret_cast<Vector3 *>(newStiffnessesNegative + nbComponentsToAllocate);
+    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newDampings + nbComponentsToAllocate);
     Vector3* newLocalAnchorPointBody2 = reinterpret_cast<Vector3*>(newLocalAnchorPointBody1 + nbComponentsToAllocate);
     Vector3* newR1World = reinterpret_cast<Vector3*>(newLocalAnchorPointBody2 + nbComponentsToAllocate);
     Vector3* newR2World = reinterpret_cast<Vector3*>(newR1World + nbComponentsToAllocate);
@@ -91,6 +95,9 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
         memcpy(newReferenceLocalInBody2, mReferenceLocalInBody2, mNbComponents * sizeof(Quaternion));
         memcpy(newLimitsAnglesMin, mLimitsAnglesMin, mNbComponents * sizeof(Vector3));
         memcpy(newLimitsAnglesMax, mLimitsAnglesMax, mNbComponents * sizeof(Vector3));
+        memcpy(newStiffnessesPositive, mStiffnessesPositive, mNbComponents * sizeof(Vector3));
+        memcpy(newStiffnessesNegative, mStiffnessesNegative, mNbComponents * sizeof(Vector3));
+        memcpy(newDampings, mDampings, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody1, mLocalAnchorPointBody1, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody2, mLocalAnchorPointBody2, mNbComponents * sizeof(Vector3));
         memcpy(newR1World, mR1World, mNbComponents * sizeof(Vector3));
@@ -116,6 +123,9 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     mReferenceLocalInBody2 = newReferenceLocalInBody2;
     mLimitsAnglesMin = newLimitsAnglesMin;
     mLimitsAnglesMax = newLimitsAnglesMax;
+    mStiffnessesPositive = newStiffnessesPositive;
+    mStiffnessesNegative = newStiffnessesNegative;
+    mDampings = newDampings;
     mLocalAnchorPointBody1 = newLocalAnchorPointBody1;
     mLocalAnchorPointBody2 = newLocalAnchorPointBody2;
     mR1World = newR1World;
@@ -143,6 +153,9 @@ void BallAndSocketJointComponents::addComponent(Entity jointEntity, bool isSleep
     new (mReferenceLocalInBody2 + index) Quaternion(0, 0, 0, 1);
     new (mLimitsAnglesMin + index) Vector3(0, 0, 0);
     new (mLimitsAnglesMax + index) Vector3(0, 0, 0);
+    new (mStiffnessesPositive + index) Vector3(0, 0, 0);
+    new (mStiffnessesNegative + index) Vector3(0, 0, 0);
+    new (mDampings + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody1 + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody2 + index) Vector3(0, 0, 0);
     new (mR1World + index) Vector3(0, 0, 0);
@@ -178,6 +191,9 @@ void BallAndSocketJointComponents::moveComponentToIndex(uint32 srcIndex, uint32 
     new (mReferenceLocalInBody2 + destIndex) Quaternion(mReferenceLocalInBody2[srcIndex]);
     new (mLimitsAnglesMin + destIndex) Vector3(mLimitsAnglesMin[srcIndex]);
     new (mLimitsAnglesMax + destIndex) Vector3(mLimitsAnglesMax[srcIndex]);
+    new (mStiffnessesPositive + destIndex) Vector3(mStiffnessesPositive[srcIndex]);
+    new (mStiffnessesNegative + destIndex) Vector3(mStiffnessesNegative[srcIndex]);
+    new (mDampings + destIndex) Vector3(mDampings[srcIndex]);
     new (mLocalAnchorPointBody1 + destIndex) Vector3(mLocalAnchorPointBody1[srcIndex]);
     new (mLocalAnchorPointBody2 + destIndex) Vector3(mLocalAnchorPointBody2[srcIndex]);
     new (mR1World + destIndex) Vector3(mR1World[srcIndex]);
@@ -212,6 +228,9 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     Quaternion referenceLocalInBody2(mReferenceLocalInBody2[index1]);
     Vector3 limitsAnglesMin1(mLimitsAnglesMin[index1]);
     Vector3 limitsAnglesMax1(mLimitsAnglesMax[index1]);
+    Vector3 stiffnessesPositive1(mStiffnessesPositive[index1]);
+    Vector3 stiffnessesNegative1(mStiffnessesNegative[index1]);
+    Vector3 dampings1(mDampings[index1]);
     Vector3 localAnchorPointBody1(mLocalAnchorPointBody1[index1]);
     Vector3 localAnchorPointBody2(mLocalAnchorPointBody2[index1]);
     Vector3 r1World1(mR1World[index1]);
@@ -237,6 +256,9 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     new (mReferenceLocalInBody2 + index2) Quaternion(referenceLocalInBody2);
     new (mLimitsAnglesMin + index2) Vector3(limitsAnglesMin1);
     new (mLimitsAnglesMax + index2) Vector3(limitsAnglesMax1);
+    new (mStiffnessesPositive + index2) Vector3(stiffnessesPositive1);
+    new (mStiffnessesNegative + index2) Vector3(stiffnessesNegative1);
+    new (mDampings + index2) Vector3(dampings1);
     new (mLocalAnchorPointBody1 + index2) Vector3(localAnchorPointBody1);
     new (mLocalAnchorPointBody2 + index2) Vector3(localAnchorPointBody2);
     new (mR1World + index2) Vector3(r1World1);
@@ -270,6 +292,9 @@ void BallAndSocketJointComponents::destroyComponent(uint32 index) {
     mReferenceLocalInBody2[index].~Quaternion();
     mLimitsAnglesMin[index].~Vector3();
     mLimitsAnglesMax[index].~Vector3();
+    mStiffnessesPositive[index].~Vector3();
+    mStiffnessesNegative[index].~Vector3();
+    mDampings[index].~Vector3();
     mLocalAnchorPointBody1[index].~Vector3();
     mLocalAnchorPointBody2[index].~Vector3();
     mR1World[index].~Vector3();
