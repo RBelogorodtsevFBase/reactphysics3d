@@ -64,6 +64,10 @@ class BallAndSocketJointComponents : public Components {
 
         bool * mLimitTwistEnabled;
 
+        Quaternion * mTargetLocalInBody1;
+
+        Quaternion * mReferenceLocalInBody2;
+
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
 
@@ -135,6 +139,10 @@ class BallAndSocketJointComponents : public Components {
 
         /// Return the local anchor point of body 1 for a given joint
         const Vector3& getLocalAnchorPointBody1(Entity jointEntity) const;
+
+        void setTargetLocalInBody1(Entity jointEntity, const Quaternion & targetLocalInBody1);
+
+        void setReferenceLocalInBody2(Entity jointEntity, const Quaternion & referenceLocalInBody2);
 
         void enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist);
 
@@ -209,6 +217,17 @@ inline void BallAndSocketJointComponents::setJoint(Entity jointEntity, BallAndSo
     mJoints[mMapEntityToComponentIndex[jointEntity]] = joint;
 }
 
+inline void BallAndSocketJointComponents::setTargetLocalInBody1(Entity jointEntity, const Quaternion& targetLocalInBody1)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mTargetLocalInBody1[mMapEntityToComponentIndex[jointEntity]] = targetLocalInBody1;
+}
+
+inline void BallAndSocketJointComponents::setReferenceLocalInBody2(Entity jointEntity, const Quaternion& referenceLocalInBody2)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mReferenceLocalInBody2[mMapEntityToComponentIndex[jointEntity]] = referenceLocalInBody2;
+}
 
 inline void BallAndSocketJointComponents::enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist)
 {

@@ -47,6 +47,14 @@ BallAndSocketJoint::BallAndSocketJoint(Entity entity, PhysicsWorld& world, const
     mWorld.mBallAndSocketJointsComponents.setLocalAnchorPointBody2(entity, body2Transform.getInverse() * jointInfo.anchorPointWorldSpace);
 }
 
+void BallAndSocketJoint::setReferenceOrientations(const Quaternion & targetLocalInBody1, const Quaternion & referenceLocalInBody2)
+{
+    mWorld.mBallAndSocketJointsComponents.setTargetLocalInBody1(mEntity, targetLocalInBody1);
+    mWorld.mBallAndSocketJointsComponents.setReferenceLocalInBody2(mEntity, referenceLocalInBody2);
+
+    awakeBodies();
+}
+
 void BallAndSocketJoint::enableLimits(bool swingX, bool swingY, bool twist)
 {
     mWorld.mBallAndSocketJointsComponents.enableLimits(mEntity, swingX, swingY, twist);
