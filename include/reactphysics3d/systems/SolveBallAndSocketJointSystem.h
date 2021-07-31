@@ -97,11 +97,19 @@ class SolveBallAndSocketJointSystem {
 
         void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3& r1, const Vector3& r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
+        void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2);
+
         decimal getGeneralizedInverseMassXPBD(const Vector3 & normal, const Vector3 & r, uint32 componentIndexBody);
+
+        decimal getGeneralizedInverseMassXPBD(const Vector3 & normal, uint32 componentIndexBody);
 
         void applyBodyCorrectionXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody);
 
+        void applyBodyCorrectionXPBD(const Vector3 & corr, uint32 componentIndexBody);
+
         void applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody);
+
+        void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal timeSubStep, decimal maxCorr = PI);
 
         /// Initialize before solving the constraint
         void initBeforeSolve();

@@ -63,17 +63,123 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
         const Quaternion& orientationBody1 = mRigidBodyComponents.mXPBDOrientations[componentIndexBody1];
         const Quaternion& orientationBody2 = mRigidBodyComponents.mXPBDOrientations[componentIndexBody2];
 
-        // Single attachement
-        Vector3 r1 = orientationBody1 * mBallAndSocketJointComponents.mLocalAnchorPointBody1[i];
-        Vector3 r2 = orientationBody2 * mBallAndSocketJointComponents.mLocalAnchorPointBody2[i];
-        Vector3 corr = r2 - r1;
-        corr += positionBody2 - positionBody1;
+        const Quaternion& localOrientationTarget = mBallAndSocketJointComponents.mTargetLocalInBody1[i];
+        const Quaternion& localOrientation2 = mBallAndSocketJointComponents.mReferenceLocalInBody2[i];
 
-        applyBodyPairCorrectionXPBD(corr, 0.0, timeSubStep, r1, r2, componentIndexBody1, componentIndexBody2);
+        // Swing X
+        {
+            Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
+            Quaternion globalOrientation2 = orientationBody2 * localOrientation2;
+
+            Vector3 z1 = globalOrientationTarget * Vector3(0, 0, 1); // TODO : optimize
+            Vector3 z2 = globalOrientation2 * Vector3(0, 0, 1);
+
+            Vector3 x1 = globalOrientationTarget * Vector3(1, 0, 0);
+            Vector3 z2_ = z2 - x1 * z2.dot(x1);
+            z2_.normalize();
+
+            limitAngleXPBD(componentIndexBody1, componentIndexBody2, x1, z1, z2_, 0.0, 0.0, 1.0 / 1000.0, timeSubStep);
+        }
+
+        // Swing Y
+        {
+            Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
+            Quaternion globalOrientation2 = orientationBody2 * localOrientation2;
+
+            Vector3 z1 = globalOrientationTarget * Vector3(0, 0, 1); // TODO : optimize
+            Vector3 z2 = globalOrientation2 * Vector3(0, 0, 1);
+
+            Vector3 y1 = globalOrientationTarget * Vector3(0, 1, 0);
+            Vector3 z2_ = z2 - y1 * z2.dot(y1);
+            z2_.normalize();
+
+            limitAngleXPBD(componentIndexBody1, componentIndexBody2, y1, z1, z2_, 0.0, 0.0, 1.0 / 1000.0, timeSubStep);
+        }
+
+        // Twist
+        {
+            Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
+            Quaternion globalOrientation2 = orientationBody2 * localOrientation2;
+
+            Vector3 n1 = globalOrientationTarget * Vector3(0, 0, 1); // TODO: optimize axis extraction?
+            Vector3 n2 = globalOrientation2 * Vector3(0, 0, 1);
+            Vector3 n = (n1 + n2);
+            n.normalize();
+
+            Vector3 a1 = globalOrientationTarget * Vector3(1, 0, 0);
+            a1 -= n * n.dot(a1);
+            a1.normalize();
+
+            Vector3 a2 = globalOrientation2 * Vector3(1, 0, 0);
+            a2 -= n * n.dot(a2);
+            a2.normalize();
+
+            // handling gimbal lock problem
+            decimal maxCorr;
+            if (n1.dot(n2) > decimal(-0.5f))
+            {
+                maxCorr = decimal(2.0) * PI;
+            }
+            else
+            {
+                maxCorr = timeSubStep;
+            }
+            limitAngleXPBD(componentIndexBody1, componentIndexBody2, n, a1, a2, 0.0, 0.0, 1.0 / 1000.0, timeSubStep, maxCorr);
+        }
+
+        // Simple attachement
+        {
+            Vector3 r1 = orientationBody1 * mBallAndSocketJointComponents.mLocalAnchorPointBody1[i];
+            Vector3 r2 = orientationBody2 * mBallAndSocketJointComponents.mLocalAnchorPointBody2[i];
+            Vector3 corr = r2 - r1;
+            corr += positionBody2 - positionBody1;
+            applyBodyPairCorrectionXPBD(corr, 0.0, timeSubStep, r1, r2, componentIndexBody1, componentIndexBody2);
+        }
     }
 }
 
-void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3& rA, const Vector3& rB, uint32 componentIndexBodyA, uint32 componentIndexBodyB)
+void SolveBallAndSocketJointSystem::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal timeSubStep, decimal maxCorr)
+{
+    // the key function to handle all angular joint limits
+    Vector3 c = n1.cross(n2);
+
+    decimal phi = std::asin(c.dot(n));
+    if (n1.dot(n2) < decimal(0.0))
+    {
+        phi = PI - phi;
+    }
+    if (phi > PI)
+    {
+        phi -= decimal(2.0) * PI;
+    }
+    if (phi < -PI)
+    {
+        phi += decimal(2.0) * PI;
+    }
+
+    if ((phi < minAngle) || (phi > maxAngle))
+    {
+        phi = std::clamp(phi, minAngle, maxAngle);
+
+        // QTR q = QTR::AngleAxisRad(phi, n);
+        decimal halfPhi = phi * decimal(0.5);
+        decimal cosHalfPhi = std::cos(halfPhi);
+        decimal sinHalfPhi = std::sin(halfPhi);
+        Quaternion q(sinHalfPhi * n.x, sinHalfPhi * n.y, sinHalfPhi * n.z, cosHalfPhi);
+
+        Vector3 omega = q * n1;
+        omega = omega.cross(n2);
+
+        phi = omega.length();
+        if (phi > maxCorr)
+        {
+            omega *= maxCorr / phi;
+        }
+        applyBodyPairCorrectionXPBD(omega, compliance, timeSubStep, componentIndexBodyA, componentIndexBodyB);
+    }
+}
+
+void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
     decimal c = corr.length();
     if (c < MACHINE_EPSILON)
@@ -82,10 +188,33 @@ void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & 
     }
 
     Vector3 normal = corr * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(normal, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(normal, componentIndexBody2);
+    decimal w = w1 + w2;
+    if (w < MACHINE_EPSILON)
+    {
+        return;
+    }
 
-    decimal wA = getGeneralizedInverseMassXPBD(normal, rA, componentIndexBodyA);
-    decimal wB = getGeneralizedInverseMassXPBD(normal, rB, componentIndexBodyB);
-    decimal w = wA + wB;
+    decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO: in paper they keep lambda!!!
+    Vector3 corr2 = normal * -lambda;
+
+    applyBodyCorrectionXPBD(corr2, componentIndexBody1);
+    applyBodyCorrectionXPBD(-corr2, componentIndexBody2);
+}
+
+void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & rA, const Vector3 & rB, uint32 componentIndexBody1, uint32 componentIndexBody2)
+{
+    decimal c = corr.length();
+    if (c < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    Vector3 normal = corr * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(normal, rA, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(normal, rB, componentIndexBody2);
+    decimal w = w1 + w2;
     if (w < MACHINE_EPSILON)
     {
         return;
@@ -94,8 +223,8 @@ void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & 
     decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
     Vector3 corr2 = normal * -lambda;
 
-    applyBodyCorrectionXPBD(corr2, rA, componentIndexBodyA);
-    applyBodyCorrectionXPBD(-corr2, rB, componentIndexBodyB);
+    applyBodyCorrectionXPBD(corr2, rA, componentIndexBody1);
+    applyBodyCorrectionXPBD(-corr2, rB, componentIndexBody2);
 }
 
 void SolveBallAndSocketJointSystem::applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody)
@@ -133,8 +262,23 @@ void SolveBallAndSocketJointSystem::applyBodyCorrectionXPBD(const Vector3 & corr
     Quaternion combinedRotation = orientation * inertiaOrientation; // TODO: consider some cashing for combinedRotation and combinedRotation_Inv ^
 
     Vector3 dqRotated = combinedRotation.getInverse() * dq;
-
     const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
+    Vector3 transf(dqRotated.x * inertiaInvDiag.x, dqRotated.y * inertiaInvDiag.y, dqRotated.z * inertiaInvDiag.z);
+
+    dq = combinedRotation * transf;
+    applyBodyRotationXPBD(dq, componentIndexBody);
+}
+
+void SolveBallAndSocketJointSystem::applyBodyCorrectionXPBD(const Vector3 & corr, uint32 componentIndexBody)
+{
+    Vector3 dq = corr;
+
+    const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
+    const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
+    Quaternion combinedRotation = orientation * inertiaOrientation; // TODO: consider some cashing for combinedRotation and combinedRotation_Inv ^
+
+    Vector3 dqRotated = combinedRotation.getInverse() * dq;
+    const Vector3& inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
     Vector3 transf(dqRotated.x * inertiaInvDiag.x, dqRotated.y * inertiaInvDiag.y, dqRotated.z * inertiaInvDiag.z);
 
     dq = combinedRotation * transf;
@@ -149,13 +293,29 @@ decimal SolveBallAndSocketJointSystem::getGeneralizedInverseMassXPBD(const Vecto
     Quaternion combinedRotation = orientation * inertiaOrientation;
 
     Vector3 rnRotated = combinedRotation.getInverse() * rn;
-
     const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
     Vector3 transf(rnRotated.x * inertiaInvDiag.x, rnRotated.y * inertiaInvDiag.y, rnRotated.z * inertiaInvDiag.z);
     Vector3 invIrn = combinedRotation * transf;
 
     decimal w = rn.dot(invIrn);
     w += mRigidBodyComponents.mInverseMasses[componentIndexBody];
+
+    return w;
+}
+
+decimal SolveBallAndSocketJointSystem::getGeneralizedInverseMassXPBD(const Vector3 & normal, uint32 componentIndexBody)
+{
+    Vector3 rn = normal;
+    const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
+    const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
+    Quaternion combinedRotation = orientation * inertiaOrientation;
+
+    Vector3 rnRotated = combinedRotation.getInverse() * rn;
+    const Vector3& inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
+    Vector3 transf(rnRotated.x * inertiaInvDiag.x, rnRotated.y * inertiaInvDiag.y, rnRotated.z * inertiaInvDiag.z);
+    Vector3 invIrn = combinedRotation * transf;
+
+    decimal w = rn.dot(invIrn);
 
     return w;
 }
