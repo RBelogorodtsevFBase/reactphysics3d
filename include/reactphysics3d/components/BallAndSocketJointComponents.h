@@ -78,6 +78,8 @@ class BallAndSocketJointComponents : public Components {
 
         Vector3 * mDampings;
 
+        Vector3 * mSpringTargets;
+
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
 
@@ -165,6 +167,8 @@ class BallAndSocketJointComponents : public Components {
         void setStiffnessNegative(Entity jointEntity, const Vector3 & stiffnesses);
 
         void setDamping(Entity jointEntity, const Vector3 & dampings);
+
+        void setSpringTarget(Entity jointEntity, const Vector3 & springTarget);
 
         /// Set the local anchor point of body 1 for a given joint
         void setLocalAnchorPointBody1(Entity jointEntity, const Vector3& localAnchoirPointBody1);
@@ -286,6 +290,12 @@ inline void BallAndSocketJointComponents::setDamping(Entity jointEntity, const V
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mDampings[mMapEntityToComponentIndex[jointEntity]] = dampings;
+}
+
+inline void BallAndSocketJointComponents::setSpringTarget(Entity jointEntity, const Vector3 & springTarget)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mSpringTargets[mMapEntityToComponentIndex[jointEntity]] = springTarget;
 }
 
 // Return the local anchor point of body 1 for a given joint

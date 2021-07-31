@@ -79,6 +79,13 @@ void BallAndSocketJoint::setSpringParams(const Vector3 & stiffnessPositive, cons
     awakeBodies();
 }
 
+void BallAndSocketJoint::setSpringTarget(const Vector3 & angles)
+{
+    mWorld.mBallAndSocketJointsComponents.setSpringTarget(mEntity, angles);
+
+    awakeBodies();
+}
+
 // Return a string representation
 std::string BallAndSocketJoint::to_string() const {
 
