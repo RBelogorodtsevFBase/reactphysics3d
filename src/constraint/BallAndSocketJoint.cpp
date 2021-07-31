@@ -47,6 +47,12 @@ BallAndSocketJoint::BallAndSocketJoint(Entity entity, PhysicsWorld& world, const
     mWorld.mBallAndSocketJointsComponents.setLocalAnchorPointBody2(entity, body2Transform.getInverse() * jointInfo.anchorPointWorldSpace);
 }
 
+void BallAndSocketJoint::enableLimits(bool swingX, bool swingY, bool twist)
+{
+    mWorld.mBallAndSocketJointsComponents.enableLimits(mEntity, swingX, swingY, twist);
+
+    awakeBodies();
+}
 
 // Return a string representation
 std::string BallAndSocketJoint::to_string() const {

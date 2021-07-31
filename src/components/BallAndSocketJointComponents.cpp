@@ -35,6 +35,7 @@ using namespace reactphysics3d;
 // Constructor
 BallAndSocketJointComponents::BallAndSocketJointComponents(MemoryAllocator& allocator)
                     :Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint*) + sizeof(Vector3) +
+                                sizeof(bool) + sizeof(bool) + sizeof(bool) +
                                 sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
                                 sizeof(Matrix3x3) + sizeof(Matrix3x3) + sizeof(Vector3) +
                                 sizeof(Matrix3x3) + sizeof(Vector3)) {
@@ -58,7 +59,10 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     // New pointers to components data
     Entity* newJointEntities = static_cast<Entity*>(newBuffer);
     BallAndSocketJoint** newJoints = reinterpret_cast<BallAndSocketJoint**>(newJointEntities + nbComponentsToAllocate);
-    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newJoints + nbComponentsToAllocate);
+    bool * newLimitSwingXEnabled = reinterpret_cast<bool*>(newJoints + nbComponentsToAllocate);
+    bool * newLimitSwingYEnabled = reinterpret_cast<bool*>(newLimitSwingXEnabled + nbComponentsToAllocate);
+    bool * newLimitTwistEnabled = reinterpret_cast<bool*>(newLimitSwingYEnabled + nbComponentsToAllocate);
+    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newLimitTwistEnabled + nbComponentsToAllocate);
     Vector3* newLocalAnchorPointBody2 = reinterpret_cast<Vector3*>(newLocalAnchorPointBody1 + nbComponentsToAllocate);
     Vector3* newR1World = reinterpret_cast<Vector3*>(newLocalAnchorPointBody2 + nbComponentsToAllocate);
     Vector3* newR2World = reinterpret_cast<Vector3*>(newR1World + nbComponentsToAllocate);
@@ -74,6 +78,9 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
         // Copy component data from the previous buffer to the new one
         memcpy(newJointEntities, mJointEntities, mNbComponents * sizeof(Entity));
         memcpy(newJoints, mJoints, mNbComponents * sizeof(BallAndSocketJoint*));
+        memcpy(newLimitSwingXEnabled, mLimitSwingXEnabled, mNbComponents * sizeof(bool));
+        memcpy(newLimitSwingYEnabled, mLimitSwingYEnabled, mNbComponents * sizeof(bool));
+        memcpy(newLimitTwistEnabled, mLimitTwistEnabled, mNbComponents * sizeof(bool));
         memcpy(newLocalAnchorPointBody1, mLocalAnchorPointBody1, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody2, mLocalAnchorPointBody2, mNbComponents * sizeof(Vector3));
         memcpy(newR1World, mR1World, mNbComponents * sizeof(Vector3));
@@ -92,6 +99,9 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     mJointEntities = newJointEntities;
     mJoints = newJoints;
     mNbAllocatedComponents = nbComponentsToAllocate;
+    mLimitSwingXEnabled = newLimitSwingXEnabled;
+    mLimitSwingYEnabled = newLimitSwingYEnabled;
+    mLimitTwistEnabled = newLimitTwistEnabled;
     mLocalAnchorPointBody1 = newLocalAnchorPointBody1;
     mLocalAnchorPointBody2 = newLocalAnchorPointBody2;
     mR1World = newR1World;
@@ -112,6 +122,9 @@ void BallAndSocketJointComponents::addComponent(Entity jointEntity, bool isSleep
     // Insert the new component data
     new (mJointEntities + index) Entity(jointEntity);
     mJoints[index] = nullptr;
+    new (mLimitSwingXEnabled + index) bool(false);
+    new (mLimitSwingYEnabled + index) bool(false);
+    new (mLimitTwistEnabled + index) bool(false);
     new (mLocalAnchorPointBody1 + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody2 + index) Vector3(0, 0, 0);
     new (mR1World + index) Vector3(0, 0, 0);
@@ -140,6 +153,9 @@ void BallAndSocketJointComponents::moveComponentToIndex(uint32 srcIndex, uint32 
     // Copy the data of the source component to the destination location
     new (mJointEntities + destIndex) Entity(mJointEntities[srcIndex]);
     mJoints[destIndex] = mJoints[srcIndex];
+    new (mLimitSwingXEnabled + destIndex) bool(mLimitSwingXEnabled[srcIndex]);
+    new (mLimitSwingYEnabled + destIndex) bool(mLimitSwingYEnabled[srcIndex]);
+    new (mLimitTwistEnabled + destIndex) bool(mLimitTwistEnabled[srcIndex]);
     new (mLocalAnchorPointBody1 + destIndex) Vector3(mLocalAnchorPointBody1[srcIndex]);
     new (mLocalAnchorPointBody2 + destIndex) Vector3(mLocalAnchorPointBody2[srcIndex]);
     new (mR1World + destIndex) Vector3(mR1World[srcIndex]);
@@ -167,6 +183,9 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     // Copy component 1 data
     Entity jointEntity1(mJointEntities[index1]);
     BallAndSocketJoint* joint1 = mJoints[index1];
+    bool limitSwingXEnabled1(mLimitSwingXEnabled[index1]);
+    bool limitSwingYEnabled1(mLimitSwingYEnabled[index1]);
+    bool limitTwistEnabled1(mLimitTwistEnabled[index1]);
     Vector3 localAnchorPointBody1(mLocalAnchorPointBody1[index1]);
     Vector3 localAnchorPointBody2(mLocalAnchorPointBody2[index1]);
     Vector3 r1World1(mR1World[index1]);
@@ -185,6 +204,9 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     // Reconstruct component 1 at component 2 location
     new (mJointEntities + index2) Entity(jointEntity1);
     mJoints[index2] = joint1;
+    new (mLimitSwingXEnabled + index2) bool(limitSwingXEnabled1);
+    new (mLimitSwingYEnabled + index2) bool(limitSwingYEnabled1);
+    new (mLimitTwistEnabled + index2) bool(limitTwistEnabled1);
     new (mLocalAnchorPointBody1 + index2) Vector3(localAnchorPointBody1);
     new (mLocalAnchorPointBody2 + index2) Vector3(localAnchorPointBody2);
     new (mR1World + index2) Vector3(r1World1);

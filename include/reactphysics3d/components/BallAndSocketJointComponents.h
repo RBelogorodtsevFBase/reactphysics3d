@@ -58,6 +58,12 @@ class BallAndSocketJointComponents : public Components {
         /// Array of pointers to the joints
         BallAndSocketJoint** mJoints;
 
+        bool * mLimitSwingXEnabled;
+
+        bool * mLimitSwingYEnabled;
+
+        bool * mLimitTwistEnabled;
+
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
 
@@ -130,6 +136,8 @@ class BallAndSocketJointComponents : public Components {
         /// Return the local anchor point of body 1 for a given joint
         const Vector3& getLocalAnchorPointBody1(Entity jointEntity) const;
 
+        void enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist);
+
         /// Set the local anchor point of body 1 for a given joint
         void setLocalAnchorPointBody1(Entity jointEntity, const Vector3& localAnchoirPointBody1);
 
@@ -199,6 +207,16 @@ inline void BallAndSocketJointComponents::setJoint(Entity jointEntity, BallAndSo
 
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mJoints[mMapEntityToComponentIndex[jointEntity]] = joint;
+}
+
+
+inline void BallAndSocketJointComponents::enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    uint32 index = mMapEntityToComponentIndex[jointEntity];
+    mLimitSwingXEnabled[index] = swingX;
+    mLimitSwingYEnabled[index] = swingY;
+    mLimitTwistEnabled[index] = twist;
 }
 
 // Return the local anchor point of body 1 for a given joint

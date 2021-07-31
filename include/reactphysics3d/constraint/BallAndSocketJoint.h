@@ -96,6 +96,21 @@ class BallAndSocketJoint : public Joint {
         /// Deleted copy-constructor
         BallAndSocketJoint(const BallAndSocketJoint& constraint) = delete;
 
+        /// Set reference orientations: twist, swing x and y angles are measured between targetLocalInBody1 and referenceLocalInBody2 orientations converted to the world coordinate frame
+        void setReferenceOrientations(const Quaternion & targetLocalInBody1, const Quaternion & referenceLocalInBody2);
+
+        /// Enable/disable the limits of the joint
+        void enableLimits(bool swingX, bool swingY, bool twist);
+
+        /// Set the limits in angles (in radians)
+        void setLimits(const Vector3 & minAngles, const Vector3 & maxAngles);
+
+        /// Set joint spring parameters
+        void setSpringParams(const Vector3 & stiffness, const Vector3 & damping);
+
+        /// Set joint spring target
+        void setSpringTarget(const Vector3 & angles);
+
         /// Return a string representation
         virtual std::string to_string() const override;
 
