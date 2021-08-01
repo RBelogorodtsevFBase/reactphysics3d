@@ -138,6 +138,33 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
     }
 }
 
+void SolveBallAndSocketJointSystem::solveVelocityXPBD(decimal timeSubStep)
+{
+    // For each joint component
+    for (uint32 i = 0; i < mBallAndSocketJointComponents.getNbEnabledComponents(); i++)
+    {
+        decimal dampingRotation = 550.0f;
+        if (dampingRotation > 0.0)
+        {
+            const Entity jointEntity = mBallAndSocketJointComponents.mJointEntities[i];
+
+            const Entity body1Entity = mJointComponents.getBody1Entity(jointEntity);
+            const Entity body2Entity = mJointComponents.getBody2Entity(jointEntity);
+
+            const uint32 componentIndexBody1 = mRigidBodyComponents.getEntityIndex(body1Entity);
+            const uint32 componentIndexBody2 = mRigidBodyComponents.getEntityIndex(body2Entity);
+
+            const Vector3& angularVelocityBody1 = mRigidBodyComponents.mAngularVelocities[componentIndexBody1];
+            const Vector3& angularVelocityBody2 = mRigidBodyComponents.mAngularVelocities[componentIndexBody2];
+
+            Vector3 angularVelocityDelta = angularVelocityBody2 - angularVelocityBody1;
+            Vector3 corr = angularVelocityDelta * std::min(decimal(1.0), dampingRotation * timeSubStep);
+
+            applyBodyPairCorrectionVelocityXPBD(corr, 0.0f, timeSubStep, componentIndexBody1, componentIndexBody2);
+        }
+    }
+}
+
 void SolveBallAndSocketJointSystem::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal timeSubStep, decimal maxCorr)
 {
     // the key function to handle all angular joint limits
@@ -227,6 +254,30 @@ void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & 
     applyBodyCorrectionXPBD(-corr2, rB, componentIndexBody2);
 }
 
+void SolveBallAndSocketJointSystem::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2)
+{
+    decimal c = corr.length();
+    if (c < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    Vector3 normal = corr * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(normal, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(normal, componentIndexBody2);
+    decimal w = w1 + w2;
+    if (w < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
+    Vector3 corr2 = normal * -lambda;
+
+    applyBodyCorrectionVelocityXPBD(corr2, componentIndexBody1);
+    applyBodyCorrectionVelocityXPBD(-corr2, componentIndexBody2);
+}
+
 void SolveBallAndSocketJointSystem::applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody)
 {
     decimal phi = rot.length();
@@ -278,11 +329,27 @@ void SolveBallAndSocketJointSystem::applyBodyCorrectionXPBD(const Vector3 & corr
     Quaternion combinedRotation = orientation * inertiaOrientation; // TODO: consider some cashing for combinedRotation and combinedRotation_Inv ^
 
     Vector3 dqRotated = combinedRotation.getInverse() * dq;
-    const Vector3& inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
+    const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
     Vector3 transf(dqRotated.x * inertiaInvDiag.x, dqRotated.y * inertiaInvDiag.y, dqRotated.z * inertiaInvDiag.z);
-
     dq = combinedRotation * transf;
+
     applyBodyRotationXPBD(dq, componentIndexBody);
+}
+
+void SolveBallAndSocketJointSystem::applyBodyCorrectionVelocityXPBD(const Vector3 & corr, uint32 componentIndexBody)
+{
+    Vector3 dq = corr;
+
+    const Quaternion& orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
+    const Quaternion& inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
+    Quaternion combinedRotation = orientation * inertiaOrientation; // TODO: consider some cashing for combinedRotation and combinedRotation_Inv ^
+
+    Vector3 dqRotated = combinedRotation.getInverse() * dq;
+    const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
+    Vector3 transf(dqRotated.x * inertiaInvDiag.x, dqRotated.y * inertiaInvDiag.y, dqRotated.z * inertiaInvDiag.z);
+    dq = combinedRotation * transf;
+
+    mRigidBodyComponents.mAngularVelocities[componentIndexBody] += dq;
 }
 
 decimal SolveBallAndSocketJointSystem::getGeneralizedInverseMassXPBD(const Vector3 & normal, const Vector3 & r, uint32 componentIndexBody)

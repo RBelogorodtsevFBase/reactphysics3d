@@ -196,6 +196,8 @@ class ConstraintSolverSystem {
 
         void solvePositionXPBD(decimal timeSubStep);
 
+        void solveVelocityXPBD(decimal timeSubStep);
+
         /// Initialize the constraint solver
         void initialize(decimal dt);
 

@@ -66,6 +66,16 @@ void ConstraintSolverSystem::solvePositionXPBD(decimal timeSubStep)
     //mSolveSliderJointSystem.solvePositionXPBD(timeSubStep);
 }
 
+void ConstraintSolverSystem::solveVelocityXPBD(decimal timeSubStep)
+{
+    RP3D_PROFILE("ConstraintSolverSystem::solveVelocityXPBD()", mProfiler);
+
+    mSolveBallAndSocketJointSystem.solveVelocityXPBD(timeSubStep);
+    //mSolveFixedJointSystem.solveVelocityXPBD(timeSubStep);
+    //mSolveHingeJointSystem.solveVelocityXPBD(timeSubStep);
+    //mSolveSliderJointSystem.solveVelocityXPBD(timeSubStep);
+}
+
 // Initialize the constraint solver
 void ConstraintSolverSystem::initialize(decimal dt) {
 
