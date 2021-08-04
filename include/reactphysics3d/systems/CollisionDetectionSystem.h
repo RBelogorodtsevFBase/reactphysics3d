@@ -330,6 +330,10 @@ class CollisionDetectionSystem {
         /// Compute the collision detection
         void computeCollisionDetection();
 
+        void computeBroadMiddlePhaseXPBD();
+
+        void computeNarrowPhaseXPBD();
+
         /// Ray casting method
         void raycast(RaycastCallback* raycastCallback, const Ray& ray,
                      unsigned short raycastWithCategoryMaskBits) const;

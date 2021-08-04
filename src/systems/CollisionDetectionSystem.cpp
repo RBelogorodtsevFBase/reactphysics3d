@@ -95,6 +95,25 @@ void CollisionDetectionSystem::computeCollisionDetection() {
     computeNarrowPhase();
 }
 
+void CollisionDetectionSystem::computeBroadMiddlePhaseXPBD()
+{
+    RP3D_PROFILE("CollisionDetectionSystem::computeBroadPhaseXPBD()", mProfiler);
+
+    // Compute the broad-phase collision detection
+    computeBroadPhase();
+
+    // Compute the middle-phase collision detection
+    computeMiddlePhase(mNarrowPhaseInput, true);
+}
+
+void CollisionDetectionSystem::computeNarrowPhaseXPBD()
+{
+    RP3D_PROFILE("CollisionDetectionSystem::computeMiddleNarrowPhaseXPBD()", mProfiler);
+
+    // Compute the narrow-phase collision detection
+    computeNarrowPhase();
+}
+
 // Compute the broad-phase collision detection
 void CollisionDetectionSystem::computeBroadPhase() {
 
@@ -518,13 +537,13 @@ void CollisionDetectionSystem::computeNarrowPhase() {
     MemoryAllocator& allocator = mMemoryManager.getSingleFrameAllocator();
 
     // Swap the previous and current contacts lists
-    swapPreviousAndCurrentContacts();
+    swapPreviousAndCurrentContacts(); // XPBD ok
 
     // Test the narrow-phase collision detection on the batches to be tested
     testNarrowPhaseCollision(mNarrowPhaseInput, true, allocator);
 
     // Process all the potential contacts after narrow-phase collision
-    processAllPotentialContacts(mNarrowPhaseInput, true, mPotentialContactPoints, mCurrentMapPairIdToContactPairIndex,
+    processAllPotentialContacts(mNarrowPhaseInput, /*updateLastFrameInfo*/true, mPotentialContactPoints, mCurrentMapPairIdToContactPairIndex, // TODO : check updateLastFrameInfo should be true all the time
                                 mPotentialContactManifolds, mCurrentContactPairs, mMapBodyToContactPairs);
 
     // Reduce the number of contact points in the manifolds

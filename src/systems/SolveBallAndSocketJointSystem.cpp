@@ -65,7 +65,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
 
         const Quaternion& localOrientationTarget = mBallAndSocketJointComponents.mTargetLocalInBody1[i];
         const Quaternion& localOrientation2 = mBallAndSocketJointComponents.mReferenceLocalInBody2[i];
-
+        
         // Swing X
         {
             Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
@@ -160,7 +160,7 @@ void SolveBallAndSocketJointSystem::solveVelocityXPBD(decimal timeSubStep)
             Vector3 angularVelocityDelta = angularVelocityBody2 - angularVelocityBody1;
             Vector3 corr = angularVelocityDelta * std::min(decimal(1.0), dampingRotation * timeSubStep);
 
-            applyBodyPairCorrectionVelocityXPBD(corr, 0.0f, timeSubStep, componentIndexBody1, componentIndexBody2);
+            applyBodyPairCorrectionVelocityXPBD(corr, 0.0, timeSubStep, componentIndexBody1, componentIndexBody2);
         }
     }
 }
@@ -230,7 +230,7 @@ void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & 
     applyBodyCorrectionXPBD(-corr2, componentIndexBody2);
 }
 
-void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & rA, const Vector3 & rB, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
     decimal c = corr.length();
     if (c < MACHINE_EPSILON)
@@ -239,8 +239,8 @@ void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & 
     }
 
     Vector3 normal = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(normal, rA, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(normal, rB, componentIndexBody2);
+    decimal w1 = getGeneralizedInverseMassXPBD(normal, r1, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(normal, r2, componentIndexBody2);
     decimal w = w1 + w2;
     if (w < MACHINE_EPSILON)
     {
@@ -250,8 +250,8 @@ void SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD(const Vector3 & 
     decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
     Vector3 corr2 = normal * -lambda;
 
-    applyBodyCorrectionXPBD(corr2, rA, componentIndexBody1);
-    applyBodyCorrectionXPBD(-corr2, rB, componentIndexBody2);
+    applyBodyCorrectionXPBD(corr2, r1, componentIndexBody1);
+    applyBodyCorrectionXPBD(-corr2, r2, componentIndexBody2);
 }
 
 void SolveBallAndSocketJointSystem::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2)

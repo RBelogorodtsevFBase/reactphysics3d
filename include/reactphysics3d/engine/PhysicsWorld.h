@@ -296,8 +296,6 @@ class PhysicsWorld {
         /// Constructor
         PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& worldSettings = WorldSettings(), Profiler* profiler = nullptr);
 
-        void solveXPBD(decimal timeStep);
-
         void solvePositionXPBD(decimal timeSubStep);
 
         void solveVelocityXPBD(decimal timeSubStep);

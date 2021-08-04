@@ -390,8 +390,8 @@ void PhysicsWorld::update(decimal timeStep) {
 }
 
 
-void PhysicsWorld::updateXPBD(decimal timeStep) {
-
+void PhysicsWorld::updateXPBD(decimal timeStep) 
+{
 #ifdef IS_RP3D_PROFILING_ENABLED
 
     // Increment the frame counter of the profiler
@@ -405,71 +405,37 @@ void PhysicsWorld::updateXPBD(decimal timeStep) {
         mDebugRenderer.reset();
     }
 
-    // Compute the collision detection
-    mCollisionDetection.computeCollisionDetection();
-
-    // Create the islands
-    createIslands();
-
-    // Create the actual narrow-phase contacts
-    mCollisionDetection.createContacts();
-
-    // Report the contacts to the user
-    mCollisionDetection.reportContactsAndTriggers();
+    // Compute the collision detection broad and middle phases
+    mCollisionDetection.computeBroadMiddlePhaseXPBD();
 
     // Disable the joints for pair of sleeping bodies
     disableJointsOfSleepingBodies();
 
-    //// Integrate the velocities
-    //mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
-
-    //// Solve the contacts and constraints
-    //solveContactsAndConstraints(timeStep);
-
-    //// Integrate the position and orientation of each body
-    //mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
-
-    //// Solve the position correction for constraints
-    //solvePositionCorrection();
-
-    //// Update the state (positions and velocities) of the bodies
-    //mDynamicsSystem.updateBodiesState();
-
-    solveXPBD(timeStep);
-
-    //// Update the colliders components
-    mCollisionDetection.updateColliders(timeStep);
-
-    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
-
-    // Reset the external force and torque applied to the bodies
-    mDynamicsSystem.resetBodiesForceAndTorque();
-
-    // Reset the islands
-    mIslands.clear();
-
-    mProcessContactPairsOrderIslands.clear(true);
-
-    // Generate debug rendering primitives (if enabled)
-    if (mIsDebugRenderingEnabled) {
-        mDebugRenderer.computeDebugRenderingPrimitives(*this);
-    }
-
-    // Reset the single frame memory allocator
-    mMemoryManager.resetFrameAllocator();
-}
-
-void PhysicsWorld::solveXPBD(decimal timeStep)
-{
-    RP3D_PROFILE("PhysicsWorld::solveXPBD()", mProfiler);
+    // copy positions and orientations to XPBD fields
+    mDynamicsSystem.initPositionsOrientationsXPBD();
 
     decimal timeSubStep = timeStep / decimal(mXPBDNbSubsteps);
     decimal timeSubStepInv = decimal(1.0) / timeSubStep;
     decimal doubleTimeSubStepInv = decimal(2.0) * timeSubStepInv;
 
-    mDynamicsSystem.initPositionsOrientationsXPBD();
     for (uint i = 0; i < mXPBDNbSubsteps; i++)
     {
+        // Compute the collision detection narrow phases
+        mCollisionDetection.computeNarrowPhaseXPBD();
+
+        // Create the islands
+        createIslands();
+
+        // Create the actual narrow-phase contacts
+        mCollisionDetection.createContacts();
+
+        if (i == 0)
+        {
+            // Report the contacts to the user
+            mCollisionDetection.reportContactsAndTriggers();
+        }
+
+        // Copy positions and orientations to previous position and previous orientation fields
         mDynamicsSystem.backUpPositionsOrientationsXPBD();
 
         // Integrate position and orientation of each body as if there are no constraints
@@ -483,9 +449,33 @@ void PhysicsWorld::solveXPBD(decimal timeStep)
 
         // Solve velocities w.r.t. the contacts and constraints 
         solveVelocityXPBD(timeSubStep);
+
+        // set positions and orientations back from XPBD fields
+        mDynamicsSystem.updateBodiesStatesXPBD();
+
+        mCollisionDetection.updateColliders(timeSubStep);
+
+        // Reset the islands
+        mIslands.clear();
+
+        mProcessContactPairsOrderIslands.clear(true);
     }
 
-    mDynamicsSystem.updateBodiesStatesXPBD();
+    //// Update the colliders components
+    //mCollisionDetection.updateColliders(timeStep);
+
+    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
+
+    // Reset the external force and torque applied to the bodies
+    mDynamicsSystem.resetBodiesForceAndTorque();
+
+    // Generate debug rendering primitives (if enabled)
+    if (mIsDebugRenderingEnabled) {
+        mDebugRenderer.computeDebugRenderingPrimitives(*this);
+    }
+
+    // Reset the single frame memory allocator
+    mMemoryManager.resetFrameAllocator();
 }
 
 void PhysicsWorld::solvePositionXPBD(decimal timeSubStep)
@@ -494,9 +484,12 @@ void PhysicsWorld::solvePositionXPBD(decimal timeSubStep)
 
     // Initialize the constraint solver
     //mConstraintSolverSystem.initialize(timeStep);
-    //// Initialize the contact solver
-    //mContactSolverSystem.init(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeStep);
+    // Initialize the contact solver
 
+    //mContactSolverSystem.init(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeSubStep);
+    mContactSolverSystem.initXPBD(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeSubStep);
+
+    mContactSolverSystem.solvePositionXPBD();
     mConstraintSolverSystem.solvePositionXPBD(timeSubStep);
 
     //mConstraintSolverSystem.solveVelocityConstraints();
