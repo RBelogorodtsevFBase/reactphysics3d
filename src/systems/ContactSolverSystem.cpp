@@ -541,10 +541,16 @@ void ContactSolverSystem::solvePositionXPBD()
         uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
         uint32 indexBody2 = mContactConstraints[c].rigidBodyComponentIndexBody2;
 
+        //if (mRigidBodyComponents.mInverseMasses[indexBody1] != 0.0 && mRigidBodyComponents.mInverseMasses[indexBody2] != 0.0)
+        //{
+        //    continue;
+        //}
+
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
             Vector3 r1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
             Vector3 r2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
+
             const Vector3 & n = mContactPoints[contactPointIndex].normal;
 
             Vector3 p1 = mRigidBodyComponents.mXPBDPositions[indexBody1] + mRigidBodyComponents.mXPBDOrientations[indexBody1] * r1;
@@ -557,7 +563,7 @@ void ContactSolverSystem::solvePositionXPBD()
             }
 
             Vector3 corr = n * d;
-            applyBodyPairCorrectionXPBD(-corr, 1.0 / 500000.0, mTimeStep, r1, r2, indexBody1, indexBody2); // copy from SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD
+            applyBodyPairCorrectionXPBD(-corr, 0.0, mTimeStep, r1, r2, indexBody1, indexBody2); // from SolveBallAndSocketJointSystem::applyBodyPairCorrectionXPBD
         }
     }
 }

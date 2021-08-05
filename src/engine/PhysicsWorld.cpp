@@ -406,7 +406,7 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
     }
 
     // Compute the collision detection broad and middle phases
-    mCollisionDetection.computeBroadMiddlePhaseXPBD();
+    //mCollisionDetection.computeBroadMiddlePhaseXPBD();
 
     // Disable the joints for pair of sleeping bodies
     disableJointsOfSleepingBodies();
@@ -420,6 +420,8 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
 
     for (uint i = 0; i < mXPBDNbSubsteps; i++)
     {
+        mCollisionDetection.computeBroadMiddlePhaseXPBD();
+
         // Compute the collision detection narrow phases
         mCollisionDetection.computeNarrowPhaseXPBD();
 
@@ -429,11 +431,11 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         // Create the actual narrow-phase contacts
         mCollisionDetection.createContacts();
 
-        if (i == 0)
-        {
-            // Report the contacts to the user
-            mCollisionDetection.reportContactsAndTriggers();
-        }
+        //if (i == 0)
+        //{
+        //    // Report the contacts to the user
+        //    mCollisionDetection.reportContactsAndTriggers();
+        //}
 
         // Copy positions and orientations to previous position and previous orientation fields
         mDynamicsSystem.backUpPositionsOrientationsXPBD();
@@ -489,8 +491,8 @@ void PhysicsWorld::solvePositionXPBD(decimal timeSubStep)
     //mContactSolverSystem.init(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeSubStep);
     mContactSolverSystem.initXPBD(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeSubStep);
 
-    mContactSolverSystem.solvePositionXPBD();
     mConstraintSolverSystem.solvePositionXPBD(timeSubStep);
+    mContactSolverSystem.solvePositionXPBD();
 
     //mConstraintSolverSystem.solveVelocityConstraints();
     //mContactSolverSystem.solve(); 

@@ -65,7 +65,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
 
         const Quaternion& localOrientationTarget = mBallAndSocketJointComponents.mTargetLocalInBody1[i];
         const Quaternion& localOrientation2 = mBallAndSocketJointComponents.mReferenceLocalInBody2[i];
-        
+
         // Swing X
         {
             Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
