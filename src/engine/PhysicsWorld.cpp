@@ -494,6 +494,8 @@ void PhysicsWorld::solvePositionXPBD(decimal timeSubStep)
     mConstraintSolverSystem.solvePositionXPBD(timeSubStep);
     mContactSolverSystem.solvePositionXPBD();
 
+    mContactSolverSystem.cacheVnXPBD();
+
     //mConstraintSolverSystem.solveVelocityConstraints();
     //mContactSolverSystem.solve(); 
 
@@ -508,6 +510,7 @@ void PhysicsWorld::solveVelocityXPBD(decimal timeSubStep)
     RP3D_PROFILE("PhysicsWorld::solveVelocityXPBD()", mProfiler);
 
     mConstraintSolverSystem.solveVelocityXPBD(timeSubStep);
+    mContactSolverSystem.solveVelocityXPBD();
 }
 
 // Solve the contacts and constraints

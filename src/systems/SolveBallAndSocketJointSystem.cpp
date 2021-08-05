@@ -65,7 +65,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
 
         const Quaternion& localOrientationTarget = mBallAndSocketJointComponents.mTargetLocalInBody1[i];
         const Quaternion& localOrientation2 = mBallAndSocketJointComponents.mReferenceLocalInBody2[i];
-
+        
         // Swing X
         {
             Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
@@ -126,7 +126,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             }
             limitAngleXPBD(componentIndexBody1, componentIndexBody2, n, a1, a2, 0.0, 0.0, 1.0 / 1000.0, timeSubStep, maxCorr);
         }
-
+        
         // Simple attachement
         {
             Vector3 r1 = orientationBody1 * mBallAndSocketJointComponents.mLocalAnchorPointBody1[i];

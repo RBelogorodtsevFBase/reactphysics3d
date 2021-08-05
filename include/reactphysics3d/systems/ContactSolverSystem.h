@@ -163,6 +163,9 @@ class ContactSolverSystem {
             /// Cross product of r2 with the contact normal
             Vector3 i2TimesR2CrossN;
 
+            /// Normal velocity before the XPBD velocity update
+            decimal vNPreUpdate;
+
             /// True if the contact was existing last time step
             bool isRestingContact;
         };
@@ -371,6 +374,10 @@ class ContactSolverSystem {
 
         void solvePositionXPBD();
 
+        void solveVelocityXPBD();
+
+        void cacheVnXPBD();
+
         void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
         decimal getGeneralizedInverseMassXPBD(const Vector3 & normal, const Vector3 & r, uint32 componentIndexBody);
@@ -378,6 +385,8 @@ class ContactSolverSystem {
         void applyBodyCorrectionXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody);
 
         void applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody);
+
+        void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
         /// Initialize the contact constraints
         void init(List<ContactManifold>* contactManifolds, List<ContactPoint>* contactPoints, decimal timeStep);
