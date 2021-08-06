@@ -548,19 +548,24 @@ void ContactSolverSystem::solvePositionXPBD()
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
+            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
+            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
 
             const Vector3 & n = mContactPoints[contactPointIndex].normal;
 
-            Vector3 p1 = mRigidBodyComponents.mXPBDPositions[indexBody1] + mRigidBodyComponents.mXPBDOrientations[indexBody1] * r1;
-            Vector3 p2 = mRigidBodyComponents.mXPBDPositions[indexBody2] + mRigidBodyComponents.mXPBDOrientations[indexBody2] * r2;
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
+
+            Vector3 p1 = mRigidBodyComponents.mXPBDPositions[indexBody1] + r1;
+            Vector3 p2 = mRigidBodyComponents.mXPBDPositions[indexBody2] + r2;
 
             decimal d = (p1 - p2).dot(n);
             if (d <= decimal(0.0))
             {
+                mContactPoints[contactPointIndex].contactHappened = false;
                 continue;
             }
+            mContactPoints[contactPointIndex].contactHappened = true;
 
             Vector3 corr = n * d;
             applyBodyPairCorrectionXPBD(-corr, 0.0, mTimeStep, r1, r2, indexBody1, indexBody2); // from SolveBallAndSocketJointSystem
@@ -570,39 +575,47 @@ void ContactSolverSystem::solvePositionXPBD()
 
 void ContactSolverSystem::solveVelocityXPBD()
 {
-    RP3D_PROFILE("ContactSolverSystem::solvePositionXPBD()", mProfiler);
+    //RP3D_PROFILE("ContactSolverSystem::solvePositionXPBD()", mProfiler);
 
-    uint contactPointIndex = 0;
+    //uint contactPointIndex = 0;
 
-    // Restitution
-    for (uint c = 0; c < mNbContactManifolds; c++)
-    {
-        uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
-        uint32 indexBody2 = mContactConstraints[c].rigidBodyComponentIndexBody2;
+    //// Restitution
+    //for (uint c = 0; c < mNbContactManifolds; c++)
+    //{
+    //    uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
+    //    uint32 indexBody2 = mContactConstraints[c].rigidBodyComponentIndexBody2;
 
-        //if (mRigidBodyComponents.mInverseMasses[indexBody1] != 0.0 && mRigidBodyComponents.mInverseMasses[indexBody2] != 0.0)
-        //{
-        //    continue;
-        //}
+    //    //if (mRigidBodyComponents.mInverseMasses[indexBody1] != 0.0 && mRigidBodyComponents.mInverseMasses[indexBody2] != 0.0)
+    //    //{
+    //    //    continue;
+    //    //}
 
-        for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
-        {
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
+    //    for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
+    //    {
+    //        if (!mContactPoints[contactPointIndex].contactHappened)
+    //        {
+    //            continue;
+    //        }
 
-            Vector3 v1 = mRigidBodyComponents.mLinearVelocities[indexBody1] + mRigidBodyComponents.mAngularVelocities[indexBody1].cross(r1);
-            Vector3 v2 = mRigidBodyComponents.mLinearVelocities[indexBody2] + mRigidBodyComponents.mAngularVelocities[indexBody2].cross(r2);
-            const Vector3 & n = mContactPoints[contactPointIndex].normal;
+    //        Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
+    //        Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
 
-            decimal vN = n.dot(v1 - v2);
-            decimal vNPreUpdate = mContactPoints[contactPointIndex].vNPreUpdate;
-            decimal restitution(0.5); // TODO : to avoid jittering we set e = 0 if vN is small ...
+    //        Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
+    //        Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
 
-            Vector3 corr = n * (-vN + std::min(-restitution * vNPreUpdate, decimal(0.0)));
+    //        Vector3 v1 = mRigidBodyComponents.mLinearVelocities[indexBody1] + mRigidBodyComponents.mAngularVelocities[indexBody1].cross(r1);
+    //        Vector3 v2 = mRigidBodyComponents.mLinearVelocities[indexBody2] + mRigidBodyComponents.mAngularVelocities[indexBody2].cross(r2);
+    //        const Vector3 & n = mContactPoints[contactPointIndex].normal;
 
-            applyBodyPairCorrectionVelocityXPBD(corr, r1, r2, indexBody1, indexBody2);
-        }
-    }
+    //        decimal vN = n.dot(v1 - v2);
+    //        decimal vNPreUpdate = mContactPoints[contactPointIndex].vNPreUpdate;
+    //        decimal restitution(1.0); // TODO : to avoid jittering we set e = 0 if vN is small ...
+
+    //        Vector3 corr = n * (std::min(-restitution * vNPreUpdate, decimal(0.0)) - vN);
+
+    //        applyBodyPairCorrectionVelocityXPBD(-corr, r1, r2, indexBody1, indexBody2);
+    //    }
+    //}
 }
 
 void ContactSolverSystem::cacheVnXPBD()
@@ -618,8 +631,16 @@ void ContactSolverSystem::cacheVnXPBD()
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
+            if (!mContactPoints[contactPointIndex].contactHappened)
+            {
+                continue;
+            }
+
+            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
+            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
+
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
 
             Vector3 v1 = mRigidBodyComponents.mLinearVelocities[indexBody1] + mRigidBodyComponents.mAngularVelocities[indexBody1].cross(r1);
             Vector3 v2 = mRigidBodyComponents.mLinearVelocities[indexBody2] + mRigidBodyComponents.mAngularVelocities[indexBody2].cross(r2);

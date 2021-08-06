@@ -166,6 +166,8 @@ class ContactSolverSystem {
             /// Normal velocity before the XPBD velocity update
             decimal vNPreUpdate;
 
+            bool contactHappened;
+
             /// True if the contact was existing last time step
             bool isRestingContact;
         };
