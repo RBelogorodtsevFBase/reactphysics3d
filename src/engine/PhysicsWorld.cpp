@@ -446,6 +446,8 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         // Solve positions w.r.t. the contacts and constraints 
         solvePositionXPBD(timeSubStep);
 
+        mContactSolverSystem.cacheVnXPBD();
+
         // Calculate linear and angular velocities
         mDynamicsSystem.infereVelocitiesXPBD(timeSubStepInv, doubleTimeSubStepInv);
 
@@ -487,22 +489,10 @@ void PhysicsWorld::solvePositionXPBD(decimal timeSubStep)
     // Initialize the constraint solver
     //mConstraintSolverSystem.initialize(timeStep);
     // Initialize the contact solver
-
-    //mContactSolverSystem.init(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeSubStep);
     mContactSolverSystem.initXPBD(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeSubStep);
 
     mConstraintSolverSystem.solvePositionXPBD(timeSubStep);
     mContactSolverSystem.solvePositionXPBD();
-
-    mContactSolverSystem.cacheVnXPBD();
-
-    //mConstraintSolverSystem.solveVelocityConstraints();
-    //mContactSolverSystem.solve(); 
-
-    //mContactSolverSystem.storeImpulses(); ???
-
-    // Reset the contact solver
-    //mContactSolverSystem.reset(); ???
 }
 
 void PhysicsWorld::solveVelocityXPBD(decimal timeSubStep)
@@ -511,6 +501,9 @@ void PhysicsWorld::solveVelocityXPBD(decimal timeSubStep)
 
     mConstraintSolverSystem.solveVelocityXPBD(timeSubStep);
     mContactSolverSystem.solveVelocityXPBD();
+
+    // Reset the contact solver
+    mContactSolverSystem.reset();
 }
 
 // Solve the contacts and constraints

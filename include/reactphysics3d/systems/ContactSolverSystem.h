@@ -386,6 +386,8 @@ class ContactSolverSystem {
 
         void applyBodyCorrectionXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody);
 
+        void applyBodyCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody);
+
         void applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody);
 
         void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
