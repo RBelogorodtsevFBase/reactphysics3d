@@ -47,17 +47,25 @@ const decimal ContactSolverSystem::SLOP = decimal(0.01);
 ContactSolverSystem::ContactSolverSystem(MemoryManager& memoryManager, PhysicsWorld& world, Islands& islands,
                                          CollisionBodyComponents& bodyComponents, RigidBodyComponents& rigidBodyComponents,
                                          ColliderComponents& colliderComponents, decimal& restitutionVelocityThreshold)
-              :mMemoryManager(memoryManager), mWorld(world), mRestitutionVelocityThreshold(restitutionVelocityThreshold),
-               mContactConstraints(nullptr), mContactPoints(nullptr),
-               mIslands(islands), mAllContactManifolds(nullptr), mAllContactPoints(nullptr),
-               mBodyComponents(bodyComponents), mRigidBodyComponents(rigidBodyComponents),
-               mColliderComponents(colliderComponents), mIsSplitImpulseActive(true) {
 
+    : mMemoryManager(memoryManager)
+    , mWorld(world)
+    , mRestitutionVelocityThreshold(restitutionVelocityThreshold)
+    , mContactConstraints(nullptr)
+    , mContactPoints(nullptr)
+    , mIslands(islands)
+    , mAllContactManifolds(nullptr)
+    , mAllContactPoints(nullptr)
+    , mBodyComponents(bodyComponents)
+    , mRigidBodyComponents(rigidBodyComponents)
+    , mColliderComponents(colliderComponents)
+    , mIsSplitImpulseActive(true)
+    , mXPBDProjections(rigidBodyComponents)
+{
 #ifdef IS_RP3D_PROFILING_ENABLED
 
         mProfiler = nullptr;
 #endif
-
 }
 
 // Initialize the contact constraints
@@ -569,7 +577,7 @@ void ContactSolverSystem::solvePositionXPBD()
             mContactPoints[contactPointIndex].contactHappened = true;
 
             Vector3 corr = n * d;
-            applyBodyPairCorrectionXPBD(-corr, 0.0, mTimeStep, r1, r2, indexBody1, indexBody2); // from SolveBallAndSocketJointSystem
+            mXPBDProjections.applyBodyPairCorrectionXPBD(-corr, 0.0, mTimeStep, r1, r2, indexBody1, indexBody2); // from SolveBallAndSocketJointSystem
         }
     }
 }
@@ -609,7 +617,7 @@ void ContactSolverSystem::solveVelocityXPBD()
 
             Vector3 corr = n * (std::min(-restitution * vNPreUpdate, decimal(0.0)) - vN);
 
-            applyBodyPairCorrectionVelocityXPBD(corr, r1, r2, indexBody1, indexBody2);
+            mXPBDProjections.applyBodyPairCorrectionVelocityXPBD(corr, r1, r2, indexBody1, indexBody2);
         }
     }
 }
@@ -694,133 +702,6 @@ void ContactSolverSystem::cacheVnXPBD()
 //        mRigidBodyComponents.mAngularVelocities[componentIndexBody2] -= combinedRotation * transf;
 //    }
 //}
-
-void ContactSolverSystem::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2)
-{
-    decimal c = corr.length();
-    if (c < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    Vector3 normal = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(normal, r1, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(normal, r2, componentIndexBody2);
-    decimal w = w1 + w2;
-    if (w < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    //decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
-    decimal lambda = -c / w; // TODO : in paper they keep lambda!!!
-    Vector3 corr2 = normal * -lambda;
-
-    applyBodyCorrectionVelocityXPBD(corr2, r1, componentIndexBody1);
-    applyBodyCorrectionVelocityXPBD(-corr2, r2, componentIndexBody2);
-}
-
-void ContactSolverSystem::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2)
-{
-    decimal c = corr.length();
-    if (c < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    Vector3 normal = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(normal, r1, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(normal, r2, componentIndexBody2);
-    decimal w = w1 + w2;
-    if (w < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
-    Vector3 corr2 = normal * -lambda;
-
-    applyBodyCorrectionXPBD(corr2, r1, componentIndexBody1);
-    applyBodyCorrectionXPBD(-corr2, r2, componentIndexBody2);
-}
-
-void ContactSolverSystem::applyBodyCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody)
-{
-    Vector3 & velocity = mRigidBodyComponents.mLinearVelocities[componentIndexBody];
-    velocity += corr * mRigidBodyComponents.mInverseMasses[componentIndexBody];
-    Vector3 dq = r.cross(corr);
-
-    const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
-    const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
-    Quaternion combinedRotation = orientation * inertiaOrientation; // TODO: consider some cashing for combinedRotation and combinedRotation_Inv ^
-
-    Vector3 dqRotated = combinedRotation.getInverse() * dq;
-    const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
-    Vector3 transf(dqRotated.x * inertiaInvDiag.x, dqRotated.y * inertiaInvDiag.y, dqRotated.z * inertiaInvDiag.z);
-    dq = combinedRotation * transf;
-
-    mRigidBodyComponents.mAngularVelocities[componentIndexBody] += dq;
-}
-
-void ContactSolverSystem::applyBodyCorrectionXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody)
-{
-    Vector3 & position = mRigidBodyComponents.mXPBDPositions[componentIndexBody];
-    position += corr * mRigidBodyComponents.mInverseMasses[componentIndexBody];
-    Vector3 dq = r.cross(corr);
-
-    const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
-    const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
-    Quaternion combinedRotation = orientation * inertiaOrientation; // TODO: consider some cashing for combinedRotation and combinedRotation_Inv ^
-
-    Vector3 dqRotated = combinedRotation.getInverse() * dq;
-    const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
-    Vector3 transf(dqRotated.x * inertiaInvDiag.x, dqRotated.y * inertiaInvDiag.y, dqRotated.z * inertiaInvDiag.z);
-    dq = combinedRotation * transf;
-
-    applyBodyRotationXPBD(dq, componentIndexBody);
-}
-
-void ContactSolverSystem::applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody)
-{
-    decimal phi = rot.length();
-
-    Quaternion rotQ(rot.x, rot.y, rot.z, 0.0);
-    static const decimal MAX_ROTATION_PER_SUBSTEP(0.5); // Safety clamping. This happens very rarely if the solver wants to turn the body by more than 30 degrees in the orders of milliseconds
-    if (phi > MAX_ROTATION_PER_SUBSTEP)
-    {
-        decimal scale = MAX_ROTATION_PER_SUBSTEP / phi;
-        rotQ.x *= scale;
-        rotQ.y *= scale;
-        rotQ.z *= scale;
-    }
-
-    Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
-    Quaternion dq = rotQ * orientation;
-
-    orientation.x += decimal(0.5) * dq.x;
-    orientation.y += decimal(0.5) * dq.y;
-    orientation.z += decimal(0.5) * dq.z;
-    orientation.w += decimal(0.5) * dq.w;
-    orientation.normalize();
-}
-
-decimal ContactSolverSystem::getGeneralizedInverseMassXPBD(const Vector3 & normal, const Vector3 & r, uint32 componentIndexBody)
-{
-    Vector3 rn = r.cross(normal);
-    const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
-    const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
-    Quaternion combinedRotation = orientation * inertiaOrientation;
-
-    Vector3 rnRotated = combinedRotation.getInverse() * rn;
-    const Vector3 & inertiaInvDiag = mRigidBodyComponents.mInverseInertiaTensorsLocal[componentIndexBody];
-    Vector3 transf(rnRotated.x * inertiaInvDiag.x, rnRotated.y * inertiaInvDiag.y, rnRotated.z * inertiaInvDiag.z);
-    Vector3 invIrn = combinedRotation * transf;
-
-    decimal w = rn.dot(invIrn);
-    w += mRigidBodyComponents.mInverseMasses[componentIndexBody];
-
-    return w;
-}
 
 // Solve the contacts
 void ContactSolverSystem::solve() {

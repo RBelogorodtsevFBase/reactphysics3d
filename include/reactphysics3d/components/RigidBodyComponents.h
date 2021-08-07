@@ -376,6 +376,7 @@ class RigidBodyComponents : public Components {
         friend class FixedJoint;
         friend class HingeJoint;
         friend class SliderJoint;
+        friend class XPBDProjections;
 };
 
 // Return a pointer to a body rigid

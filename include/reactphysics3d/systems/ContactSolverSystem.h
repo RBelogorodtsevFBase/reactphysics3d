@@ -28,6 +28,7 @@
 
 // Libraries
 #include <reactphysics3d/configuration.h>
+#include <reactphysics3d/engine/XPBDProjections.h>
 #include <reactphysics3d/mathematics/Vector3.h>
 #include <reactphysics3d/mathematics/Matrix3x3.h>
 
@@ -333,6 +334,8 @@ class ContactSolverSystem {
         /// True if the split impulse position correction is active
         bool mIsSplitImpulseActive;
 
+        XPBDProjections mXPBDProjections;
+
 #ifdef IS_RP3D_PROFILING_ENABLED
 
 		/// Pointer to the profiler
@@ -379,18 +382,6 @@ class ContactSolverSystem {
         void solveVelocityXPBD();
 
         void cacheVnXPBD();
-
-        void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
-
-        decimal getGeneralizedInverseMassXPBD(const Vector3 & normal, const Vector3 & r, uint32 componentIndexBody);
-
-        void applyBodyCorrectionXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody);
-
-        void applyBodyCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody);
-
-        void applyBodyRotationXPBD(const Vector3 & rot, uint32 componentIndexBody);
-
-        void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
         /// Initialize the contact constraints
         void init(List<ContactManifold>* contactManifolds, List<ContactPoint>* contactPoints, decimal timeStep);
