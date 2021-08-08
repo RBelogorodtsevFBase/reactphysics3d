@@ -577,7 +577,8 @@ void ContactSolverSystem::solvePositionXPBD()
             mContactPoints[contactPointIndex].contactHappened = true;
 
             Vector3 corr = n * d;
-            mXPBDProjections.applyBodyPairCorrectionXPBD(-corr, 0.0, mTimeStep, r1, r2, indexBody1, indexBody2); // from SolveBallAndSocketJointSystem
+            decimal lambda(0.0);
+            mXPBDProjections.applyBodyPairCorrectionXPBD(-corr, 0.0, r1, r2, mTimeStep, lambda, indexBody1, indexBody2);
         }
     }
 }
@@ -589,6 +590,7 @@ void ContactSolverSystem::solveVelocityXPBD()
     uint contactPointIndex = 0;
 
     // Restitution
+    /*
     for (uint c = 0; c < mNbContactManifolds; c++)
     {
         uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
@@ -617,9 +619,9 @@ void ContactSolverSystem::solveVelocityXPBD()
 
             Vector3 corr = n * (std::min(-restitution * vNPreUpdate, decimal(0.0)) - vN);
 
-            mXPBDProjections.applyBodyPairCorrectionVelocityXPBD(corr, r1, r2, indexBody1, indexBody2);
+            mXPBDProjections.applyBodyPairCorrectionVelocityXPBD(corr, 0.0, r1, r2, mTimeStep, indexBody1, indexBody2);
         }
-    }
+    }*/
 }
 
 void ContactSolverSystem::cacheVnXPBD()

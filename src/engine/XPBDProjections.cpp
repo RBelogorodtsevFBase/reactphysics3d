@@ -9,7 +9,7 @@ XPBDProjections::XPBDProjections(RigidBodyComponents & rigidBodyComponents)
 {
 }
 
-void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal timeSubStep, decimal maxCorr)
+void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal dt, decimal & lambda, decimal maxCorr)
 {
     // the key function to handle all angular joint limits
     Vector3 c = n1.cross(n2);
@@ -47,11 +47,11 @@ void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componen
             omega *= maxCorr / phi;
         }
 
-        applyBodyPairCorrectionXPBD(omega, compliance, timeSubStep, componentIndexBodyA, componentIndexBodyB);
+        applyBodyPairCorrectionXPBD(omega, compliance, dt, lambda, componentIndexBodyA, componentIndexBodyB);
     }
 }
 
-void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
     decimal c = corr.length();
     if (c < MACHINE_EPSILON)
@@ -68,14 +68,15 @@ void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal 
         return;
     }
 
-    decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO: in paper they keep lambda!!!
+    decimal compliance_ = compliance / (dt * dt);
+    lambda = -c / (w + compliance_);
     Vector3 corr2 = normal * -lambda;
 
     applyBodyCorrectionXPBD(corr2, componentIndexBody1);
     applyBodyCorrectionXPBD(-corr2, componentIndexBody2);
 }
 
-void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
     decimal c = corr.length();
     if (c < MACHINE_EPSILON)
@@ -92,14 +93,15 @@ void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal 
         return;
     }
 
-    decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
+    decimal compliance_ = compliance / (dt * dt);
+    lambda = -c / (w + compliance_); // TODO : in paper they keep lambda!!!
     Vector3 corr2 = normal * -lambda;
 
     applyBodyCorrectionXPBD(corr2, r1, componentIndexBody1);
     applyBodyCorrectionXPBD(-corr2, r2, componentIndexBody2);
 }
 
-void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
     decimal c = corr.length();
     if (c < MACHINE_EPSILON)
@@ -107,23 +109,24 @@ void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, 
         return;
     }
 
-    Vector3 normal = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(normal, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(normal, componentIndexBody2);
+    Vector3 dir = corr * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(dir, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(dir, componentIndexBody2);
     decimal w = w1 + w2;
     if (w < MACHINE_EPSILON)
     {
         return;
     }
 
-    decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
-    Vector3 corr2 = normal * -lambda;
+    decimal compliance_ = compliance / (dt * dt);
+    decimal lambda = -c / (w + compliance_);
+    Vector3 corr2 = dir * -lambda;
 
     applyBodyCorrectionVelocityXPBD(corr2, componentIndexBody1);
     applyBodyCorrectionVelocityXPBD(-corr2, componentIndexBody2);
 }
 
-void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
     decimal c = corr.length();
     if (c < MACHINE_EPSILON)
@@ -131,18 +134,18 @@ void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, 
         return;
     }
 
-    Vector3 normal = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(normal, r1, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(normal, r2, componentIndexBody2);
+    Vector3 dir = corr * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(dir, r1, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(dir, r2, componentIndexBody2);
     decimal w = w1 + w2;
     if (w < MACHINE_EPSILON)
     {
         return;
     }
 
-    //decimal lambda = -c / (w + compliance / (timeSubStep * timeSubStep)); // TODO : in paper they keep lambda!!!
-    decimal lambda = -c / w; // TODO : in paper they keep lambda!!!
-    Vector3 corr2 = normal * -lambda;
+    decimal compliance_ = compliance / (dt * dt);
+    decimal lambda = -c / (w + compliance_);
+    Vector3 corr2 = dir * -lambda;
 
     applyBodyCorrectionVelocityXPBD(corr2, r1, componentIndexBody1);
     applyBodyCorrectionVelocityXPBD(-corr2, r2, componentIndexBody2);

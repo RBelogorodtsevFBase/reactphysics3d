@@ -36,6 +36,7 @@ using namespace reactphysics3d;
 BallAndSocketJointComponents::BallAndSocketJointComponents(MemoryAllocator& allocator)
                     :Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint*) + sizeof(Vector3) +
                                 sizeof(bool) + sizeof(bool) + sizeof(bool) +
+                                sizeof(decimal) + sizeof(decimal) + sizeof(decimal) +
                                 sizeof(Quaternion) + sizeof(Quaternion) +
                                 sizeof(Vector3) + sizeof(Vector3) +
                                 sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
@@ -73,7 +74,10 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     Vector3 * newStiffnessesNegative = reinterpret_cast<Vector3 *>(newStiffnessesPositive + nbComponentsToAllocate);
     Vector3 * newDampings = reinterpret_cast<Vector3 *>(newStiffnessesNegative + nbComponentsToAllocate);
     Vector3 * newSpringTargets = reinterpret_cast<Vector3 *>(newDampings + nbComponentsToAllocate);
-    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newSpringTargets + nbComponentsToAllocate);
+    decimal * newSwingXLambda = reinterpret_cast<decimal *>(newSpringTargets + nbComponentsToAllocate);
+    decimal * newSwingYLambda = reinterpret_cast<decimal *>(newSwingXLambda + nbComponentsToAllocate);
+    decimal * newTwistLambda = reinterpret_cast<decimal *>(newSwingYLambda + nbComponentsToAllocate);
+    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newTwistLambda + nbComponentsToAllocate);
     Vector3* newLocalAnchorPointBody2 = reinterpret_cast<Vector3*>(newLocalAnchorPointBody1 + nbComponentsToAllocate);
     Vector3* newR1World = reinterpret_cast<Vector3*>(newLocalAnchorPointBody2 + nbComponentsToAllocate);
     Vector3* newR2World = reinterpret_cast<Vector3*>(newR1World + nbComponentsToAllocate);
@@ -84,8 +88,8 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     Vector3* newImpulse = reinterpret_cast<Vector3*>(newInverseMassMatrix + nbComponentsToAllocate);
 
     // If there was already components before
-    if (mNbComponents > 0) {
-
+    if (mNbComponents > 0) 
+    {
         // Copy component data from the previous buffer to the new one
         memcpy(newJointEntities, mJointEntities, mNbComponents * sizeof(Entity));
         memcpy(newJoints, mJoints, mNbComponents * sizeof(BallAndSocketJoint*));
@@ -100,6 +104,9 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
         memcpy(newStiffnessesNegative, mStiffnessesNegative, mNbComponents * sizeof(Vector3));
         memcpy(newDampings, mDampings, mNbComponents * sizeof(Vector3));
         memcpy(newSpringTargets, mSpringTargets, mNbComponents * sizeof(Vector3));
+        memcpy(newSwingXLambda, mSwingXLambda, mNbComponents * sizeof(decimal));
+        memcpy(newSwingYLambda, mSwingYLambda, mNbComponents * sizeof(decimal));
+        memcpy(newTwistLambda, mTwistLambda, mNbComponents * sizeof(decimal));
         memcpy(newLocalAnchorPointBody1, mLocalAnchorPointBody1, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody2, mLocalAnchorPointBody2, mNbComponents * sizeof(Vector3));
         memcpy(newR1World, mR1World, mNbComponents * sizeof(Vector3));
@@ -129,6 +136,9 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     mStiffnessesNegative = newStiffnessesNegative;
     mDampings = newDampings;
     mSpringTargets = newSpringTargets;
+    mSwingXLambda = newSwingXLambda;
+    mSwingYLambda = newSwingYLambda;
+    mTwistLambda = newTwistLambda;
     mLocalAnchorPointBody1 = newLocalAnchorPointBody1;
     mLocalAnchorPointBody2 = newLocalAnchorPointBody2;
     mR1World = newR1World;
@@ -160,6 +170,9 @@ void BallAndSocketJointComponents::addComponent(Entity jointEntity, bool isSleep
     new (mStiffnessesNegative + index) Vector3(0, 0, 0);
     new (mDampings + index) Vector3(0, 0, 0);
     new (mSpringTargets + index) Vector3(0, 0, 0);
+    new (mSwingXLambda + index) decimal(0);
+    new (mSwingYLambda + index) decimal(0);
+    new (mTwistLambda + index) decimal(0);
     new (mLocalAnchorPointBody1 + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody2 + index) Vector3(0, 0, 0);
     new (mR1World + index) Vector3(0, 0, 0);
@@ -199,6 +212,9 @@ void BallAndSocketJointComponents::moveComponentToIndex(uint32 srcIndex, uint32 
     new (mStiffnessesNegative + destIndex) Vector3(mStiffnessesNegative[srcIndex]);
     new (mDampings + destIndex) Vector3(mDampings[srcIndex]);
     new (mSpringTargets + destIndex) Vector3(mSpringTargets[srcIndex]);
+    new (mSwingXLambda + destIndex) decimal(mSwingXLambda[srcIndex]);
+    new (mSwingYLambda + destIndex) decimal(mSwingYLambda[srcIndex]);
+    new (mTwistLambda + destIndex) decimal(mTwistLambda[srcIndex]);
     new (mLocalAnchorPointBody1 + destIndex) Vector3(mLocalAnchorPointBody1[srcIndex]);
     new (mLocalAnchorPointBody2 + destIndex) Vector3(mLocalAnchorPointBody2[srcIndex]);
     new (mR1World + destIndex) Vector3(mR1World[srcIndex]);
@@ -237,6 +253,9 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     Vector3 stiffnessesNegative1(mStiffnessesNegative[index1]);
     Vector3 dampings1(mDampings[index1]);
     Vector3 springTarget1(mSpringTargets[index1]);
+    decimal swingXLambda1(mSwingXLambda[index1]);
+    decimal swingYLambda1(mSwingYLambda[index1]);
+    decimal twistLambda1(mTwistLambda[index1]);
     Vector3 localAnchorPointBody1(mLocalAnchorPointBody1[index1]);
     Vector3 localAnchorPointBody2(mLocalAnchorPointBody2[index1]);
     Vector3 r1World1(mR1World[index1]);
@@ -266,6 +285,9 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     new (mStiffnessesNegative + index2) Vector3(stiffnessesNegative1);
     new (mDampings + index2) Vector3(dampings1);
     new (mSpringTargets + index2) Vector3(springTarget1);
+    new (mSwingXLambda + index2) decimal(swingXLambda1);
+    new (mSwingYLambda + index2) decimal(swingYLambda1);
+    new (mTwistLambda + index2) decimal(twistLambda1);
     new (mLocalAnchorPointBody1 + index2) Vector3(localAnchorPointBody1);
     new (mLocalAnchorPointBody2 + index2) Vector3(localAnchorPointBody2);
     new (mR1World + index2) Vector3(r1World1);
@@ -303,6 +325,9 @@ void BallAndSocketJointComponents::destroyComponent(uint32 index) {
     mStiffnessesNegative[index].~Vector3();
     mDampings[index].~Vector3();
     mSpringTargets[index].~Vector3();
+    mSwingXLambda[index].~decimal();
+    mSwingYLambda[index].~decimal();
+    mTwistLambda[index].~decimal();
     mLocalAnchorPointBody1[index].~Vector3();
     mLocalAnchorPointBody2[index].~Vector3();
     mR1World[index].~Vector3();

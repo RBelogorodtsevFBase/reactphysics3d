@@ -80,6 +80,12 @@ class BallAndSocketJointComponents : public Components {
 
         Vector3 * mSpringTargets;
 
+        decimal * mSwingXLambda;
+
+        decimal * mSwingYLambda;
+
+        decimal * mTwistLambda;
+
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
 

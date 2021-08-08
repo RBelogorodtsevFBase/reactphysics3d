@@ -97,7 +97,8 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             Vector3 z2_ = z2 - x1 * z2.dot(x1);
             z2_.normalize();
 
-            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, x1, z1, z2_, 0.0, 0.0, 1.0 / 1000.0, timeSubStep);
+            decimal & lambda = mBallAndSocketJointComponents.mSwingXLambda[i];
+            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, x1, z1, z2_, 0.0, 0.0, 1.0 / 1000.0, timeSubStep, lambda);
         }
 
         // Swing Y
@@ -112,7 +113,8 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             Vector3 z2_ = z2 - y1 * z2.dot(y1);
             z2_.normalize();
 
-            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, y1, z1, z2_, 0.0, 0.0, 1.0 / 1000.0, timeSubStep);
+            decimal & lambda = mBallAndSocketJointComponents.mSwingYLambda[i];
+            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, y1, z1, z2_, 0.0, 0.0, 1.0 / 1000.0, timeSubStep, lambda);
         }
 
         // Twist
@@ -143,7 +145,9 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             {
                 maxCorr = timeSubStep;
             }
-            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, n, a1, a2, 0.0, 0.0, 1.0 / 1000.0, timeSubStep, maxCorr);
+
+            decimal & lambda = mBallAndSocketJointComponents.mTwistLambda[i];
+            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, n, a1, a2, 0.0, 0.0, 1.0 / 1000.0, timeSubStep, lambda, maxCorr);
         }
         
         // Simple attachement
@@ -152,7 +156,8 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             Vector3 r2 = orientationBody2 * mBallAndSocketJointComponents.mLocalAnchorPointBody2[i];
             Vector3 corr = r2 - r1;
             corr += positionBody2 - positionBody1;
-            mXPBDProjections.applyBodyPairCorrectionXPBD(corr, 0.0, timeSubStep, r1, r2, componentIndexBody1, componentIndexBody2);
+            decimal lambda(0.0);
+            mXPBDProjections.applyBodyPairCorrectionXPBD(corr, 0.0, r1, r2, timeSubStep, lambda, componentIndexBody1, componentIndexBody2);
         }
     }
 }

@@ -46,15 +46,15 @@ class XPBDProjections {
         /// Destructor
         ~XPBDProjections() = default;
 
-        void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2);
+        void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
-        void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
+        void applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
-        void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal timeSubStep, uint32 componentIndexBody1, uint32 componentIndexBody2);
+        void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
-        void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r1, const Vector3 & r2, uint32 componentIndexBody1, uint32 componentIndexBody2);
+        void applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
-        void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal timeSubStep, decimal maxCorr = PI);
+        void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal dt, decimal & lambda, decimal maxCorr = PI);
 };
 
 }
