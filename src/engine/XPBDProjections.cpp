@@ -51,15 +51,15 @@ void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componen
     }
 }
 
-void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & correction, decimal compliance, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
-    decimal c = corr.length();
+    decimal c = correction.length();
     if (c < MACHINE_EPSILON)
     {
         return;
     }
 
-    Vector3 normal = corr * (decimal(1.0) / c);
+    Vector3 normal = correction * (decimal(1.0) / c);
     decimal w1 = getGeneralizedInverseMassXPBD(normal, componentIndexBody1);
     decimal w2 = getGeneralizedInverseMassXPBD(normal, componentIndexBody2);
     decimal w = w1 + w2;
@@ -69,72 +69,22 @@ void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal 
     }
 
     decimal compliance_ = compliance / (dt * dt);
-    lambda = -c / (w + compliance_);
-    Vector3 corr2 = normal * -lambda;
+    lambda = c / (w + compliance_);
+    Vector3 correction2 = normal * lambda;
 
-    applyBodyCorrectionXPBD(corr2, componentIndexBody1);
-    applyBodyCorrectionXPBD(-corr2, componentIndexBody2);
+    applyBodyCorrectionXPBD(correction2, componentIndexBody1);
+    applyBodyCorrectionXPBD(-correction2, componentIndexBody2);
 }
 
-void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & corr, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)
+void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & correction, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)
 {
-    decimal c = corr.length();
+    decimal c = correction.length();
     if (c < MACHINE_EPSILON)
     {
         return;
     }
 
-    Vector3 normal = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(normal, r1, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(normal, r2, componentIndexBody2);
-    decimal w = w1 + w2;
-    if (w < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    decimal compliance_ = compliance / (dt * dt);
-    lambda = -c / (w + compliance_); // TODO : in paper they keep lambda!!!
-    Vector3 corr2 = normal * -lambda;
-
-    applyBodyCorrectionXPBD(corr2, r1, componentIndexBody1);
-    applyBodyCorrectionXPBD(-corr2, r2, componentIndexBody2);
-}
-
-void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2)
-{
-    decimal c = corr.length();
-    if (c < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    Vector3 dir = corr * (decimal(1.0) / c);
-    decimal w1 = getGeneralizedInverseMassXPBD(dir, componentIndexBody1);
-    decimal w2 = getGeneralizedInverseMassXPBD(dir, componentIndexBody2);
-    decimal w = w1 + w2;
-    if (w < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    decimal compliance_ = compliance / (dt * dt);
-    decimal lambda = -c / (w + compliance_);
-    Vector3 corr2 = dir * -lambda;
-
-    applyBodyCorrectionVelocityXPBD(corr2, componentIndexBody1);
-    applyBodyCorrectionVelocityXPBD(-corr2, componentIndexBody2);
-}
-
-void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2)
-{
-    decimal c = corr.length();
-    if (c < MACHINE_EPSILON)
-    {
-        return;
-    }
-
-    Vector3 dir = corr * (decimal(1.0) / c);
+    Vector3 dir = correction * (decimal(1.0) / c);
     decimal w1 = getGeneralizedInverseMassXPBD(dir, r1, componentIndexBody1);
     decimal w2 = getGeneralizedInverseMassXPBD(dir, r2, componentIndexBody2);
     decimal w = w1 + w2;
@@ -144,11 +94,91 @@ void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & corr, 
     }
 
     decimal compliance_ = compliance / (dt * dt);
-    decimal lambda = -c / (w + compliance_);
-    Vector3 corr2 = dir * -lambda;
+    lambda = c / (w + compliance_);
+    Vector3 correction2 = dir * lambda;
 
-    applyBodyCorrectionVelocityXPBD(corr2, r1, componentIndexBody1);
-    applyBodyCorrectionVelocityXPBD(-corr2, r2, componentIndexBody2);
+    applyBodyCorrectionXPBD(correction2, r1, componentIndexBody1);
+    applyBodyCorrectionXPBD(-correction2, r2, componentIndexBody2);
+}
+
+void XPBDProjections::applyBodyPairCorrectionThresholdXPBD(const Vector3 & correction, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, decimal & lambda, decimal threshold, uint32 componentIndexBody1, uint32 componentIndexBody2)
+{
+    decimal c = correction.length();
+    if (c < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    Vector3 dir = correction * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(dir, r1, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(dir, r2, componentIndexBody2);
+    decimal w = w1 + w2;
+    if (w < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    decimal compliance_ = compliance / (dt * dt);
+    lambda = c / (w + compliance_);
+    if (lambda > threshold)
+    {
+        return;
+    }
+
+    Vector3 correction2 = dir * lambda;
+    applyBodyCorrectionXPBD(correction2, r1, componentIndexBody1);
+    applyBodyCorrectionXPBD(-correction2, r2, componentIndexBody2);
+}
+
+
+void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & correction, decimal compliance, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2)
+{
+    decimal c = correction.length();
+    if (c < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    Vector3 dir = correction * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(dir, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(dir, componentIndexBody2);
+    decimal w = w1 + w2;
+    if (w < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    decimal compliance_ = compliance / (dt * dt);
+    decimal lambda = c / (w + compliance_);
+    Vector3 correction2 = dir * lambda;
+
+    applyBodyCorrectionVelocityXPBD(correction2, componentIndexBody1);
+    applyBodyCorrectionVelocityXPBD(-correction2, componentIndexBody2);
+}
+
+void XPBDProjections::applyBodyPairCorrectionVelocityXPBD(const Vector3 & correction, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2)
+{
+    decimal c = correction.length();
+    if (c < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    Vector3 dir = correction * (decimal(1.0) / c);
+    decimal w1 = getGeneralizedInverseMassXPBD(dir, r1, componentIndexBody1);
+    decimal w2 = getGeneralizedInverseMassXPBD(dir, r2, componentIndexBody2);
+    decimal w = w1 + w2;
+    if (w < MACHINE_EPSILON)
+    {
+        return;
+    }
+
+    decimal compliance_ = compliance / (dt * dt);
+    decimal lambda = c / (w + compliance_);
+    Vector3 correction2 = dir * lambda;
+
+    applyBodyCorrectionVelocityXPBD(correction2, r1, componentIndexBody1);
+    applyBodyCorrectionVelocityXPBD(-correction2, r2, componentIndexBody2);
 }
 
 decimal XPBDProjections::getGeneralizedInverseMassXPBD(const Vector3 & normal, const Vector3 & r, uint32 componentIndexBody)
@@ -186,11 +216,11 @@ decimal XPBDProjections::getGeneralizedInverseMassXPBD(const Vector3 & normal, u
     return w;
 }
 
-void XPBDProjections::applyBodyCorrectionXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody)
+void XPBDProjections::applyBodyCorrectionXPBD(const Vector3 & correction, const Vector3 & r, uint32 componentIndexBody)
 {
     Vector3 & position = mRigidBodyComponents.mXPBDPositions[componentIndexBody];
-    position += corr * mRigidBodyComponents.mInverseMasses[componentIndexBody];
-    Vector3 dq = r.cross(corr);
+    position += correction * mRigidBodyComponents.mInverseMasses[componentIndexBody];
+    Vector3 dq = r.cross(correction);
 
     const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
     const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
@@ -204,9 +234,9 @@ void XPBDProjections::applyBodyCorrectionXPBD(const Vector3 & corr, const Vector
     applyBodyRotationXPBD(dq, componentIndexBody);
 }
 
-void XPBDProjections::applyBodyCorrectionXPBD(const Vector3 & corr, uint32 componentIndexBody)
+void XPBDProjections::applyBodyCorrectionXPBD(const Vector3 & correction, uint32 componentIndexBody)
 {
-    Vector3 dq = corr;
+    Vector3 dq = correction;
 
     const Quaternion & orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
     const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
@@ -220,9 +250,9 @@ void XPBDProjections::applyBodyCorrectionXPBD(const Vector3 & corr, uint32 compo
     applyBodyRotationXPBD(dq, componentIndexBody);
 }
 
-void XPBDProjections::applyBodyCorrectionVelocityXPBD(const Vector3 & corr, uint32 componentIndexBody)
+void XPBDProjections::applyBodyCorrectionVelocityXPBD(const Vector3 & correction, uint32 componentIndexBody)
 {
-    Vector3 dq = corr;
+    Vector3 dq = correction;
 
     const Quaternion& orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
     const Quaternion& inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];
@@ -236,11 +266,11 @@ void XPBDProjections::applyBodyCorrectionVelocityXPBD(const Vector3 & corr, uint
     mRigidBodyComponents.mAngularVelocities[componentIndexBody] += dq;
 }
 
-void XPBDProjections::applyBodyCorrectionVelocityXPBD(const Vector3 & corr, const Vector3 & r, uint32 componentIndexBody)
+void XPBDProjections::applyBodyCorrectionVelocityXPBD(const Vector3 & correction, const Vector3 & r, uint32 componentIndexBody)
 {
     Vector3& velocity = mRigidBodyComponents.mLinearVelocities[componentIndexBody];
-    velocity += corr * mRigidBodyComponents.mInverseMasses[componentIndexBody];
-    Vector3 dq = r.cross(corr);
+    velocity += correction * mRigidBodyComponents.mInverseMasses[componentIndexBody];
+    Vector3 dq = r.cross(correction);
 
     const Quaternion& orientation = mRigidBodyComponents.mXPBDOrientations[componentIndexBody];
     const Quaternion& inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[componentIndexBody];

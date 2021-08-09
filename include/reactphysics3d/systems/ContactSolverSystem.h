@@ -169,6 +169,10 @@ class ContactSolverSystem {
 
             bool contactHappened;
 
+            decimal lambdaN;
+
+            decimal lambdaT;
+
             /// True if the contact was existing last time step
             bool isRestingContact;
         };
