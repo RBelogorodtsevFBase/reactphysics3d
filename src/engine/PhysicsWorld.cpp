@@ -431,11 +431,8 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         // Create the actual narrow-phase contacts
         mCollisionDetection.createContacts();
 
-        //if (i == 0)
-        //{
-        //    // Report the contacts to the user
-        //    mCollisionDetection.reportContactsAndTriggers();
-        //}
+        // Report the contacts to the user
+        mCollisionDetection.reportContactsAndTriggers();
 
         // Copy positions and orientations to previous position and previous orientation fields
         mDynamicsSystem.backUpPositionsOrientationsXPBD();
@@ -465,16 +462,17 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         mProcessContactPairsOrderIslands.clear(true);
     }
 
-    //// Update the colliders components
-    //mCollisionDetection.updateColliders(timeStep);
-
-    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
+    if (mIsSleepingEnabled)
+    {
+        updateSleepingBodies(timeStep);
+    }
 
     // Reset the external force and torque applied to the bodies
     mDynamicsSystem.resetBodiesForceAndTorque();
 
     // Generate debug rendering primitives (if enabled)
-    if (mIsDebugRenderingEnabled) {
+    if (mIsDebugRenderingEnabled) 
+    {
         mDebugRenderer.computeDebugRenderingPrimitives(*this);
     }
 
