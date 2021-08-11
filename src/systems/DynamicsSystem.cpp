@@ -80,32 +80,29 @@ void DynamicsSystem::integrateRigidBodiesXPBD(decimal timeSubStep)
         mRigidBodyComponents.mXPBDPositions[i] += linearVelocity * timeSubStep;
 
         // Get current orientation of the body
-        const Quaternion& currentOrientation = mRigidBodyComponents.mXPBDOrientations[i];
+        const Quaternion & currentOrientation = mRigidBodyComponents.mXPBDOrientations[i];
+        const Quaternion & inertiaOrientation = mRigidBodyComponents.mLocalInertiaOrientations[i];
+        Quaternion combinedRotation = currentOrientation * inertiaOrientation;
+        Quaternion combinedRotationInverse = combinedRotation.getInverse();
 
-        // Calculate new angular acceleration and velocity
-        // TODO : optimize this
-        Matrix3x3 combinedOrientation = (currentOrientation * mRigidBodyComponents.mLocalInertiaOrientations[i]).getMatrix();
-        const Vector3& inertiaLocalTensor = mRigidBodyComponents.mLocalInertiaTensors[i];
-        const Vector3& inverseInertiaLocalTensor = mRigidBodyComponents.mInverseInertiaTensorsLocal[i];
-
-        Matrix3x3 combinedOrientationTranspose0 = combinedOrientation.getTranspose();
-        Matrix3x3 combinedOrientationTranspose1 = combinedOrientationTranspose0;
-
-        combinedOrientationTranspose0[0] *= inverseInertiaLocalTensor.x;
-        combinedOrientationTranspose0[1] *= inverseInertiaLocalTensor.y;
-        combinedOrientationTranspose0[2] *= inverseInertiaLocalTensor.z;
-        Matrix3x3 worldInertiaTensorInverse = combinedOrientation * combinedOrientationTranspose0;
-
-        combinedOrientationTranspose1[0] *= inertiaLocalTensor.x;
-        combinedOrientationTranspose1[1] *= inertiaLocalTensor.y;
-        combinedOrientationTranspose1[2] *= inertiaLocalTensor.z;
-        Matrix3x3 worldInertiaTensor = combinedOrientation * combinedOrientationTranspose1;
+        const Vector3 & inertiaLocalTensor = mRigidBodyComponents.mLocalInertiaTensors[i];
+        const Vector3 & inertiaLocalTensorInverse = mRigidBodyComponents.mInverseInertiaTensorsLocal[i];
 
         const Vector3 & currentAngularVelocity = mRigidBodyComponents.mAngularVelocities[i];
+        Vector3 currentAngularVelocityRotated = combinedRotationInverse * currentAngularVelocity;
+        Vector3 currentAngularVelocityRotatedTransformed(currentAngularVelocityRotated.x * inertiaLocalTensor.x, 
+            currentAngularVelocityRotated.y * inertiaLocalTensor.y,
+            currentAngularVelocityRotated.z * inertiaLocalTensor.z);
+        Vector3 gyroscopicTorque = currentAngularVelocity.cross(combinedRotation * currentAngularVelocityRotatedTransformed);
 
-        Vector3 gyroscopicTorque = currentAngularVelocity.cross(worldInertiaTensor * currentAngularVelocity);
+        Vector3 torqueCombined = mRigidBodyComponents.mExternalTorques[i] - gyroscopicTorque;
 
-        Vector3 angularAcceleration = worldInertiaTensorInverse * (mRigidBodyComponents.mExternalTorques[i] - gyroscopicTorque);
+        Vector3 torqueCombinedRotated = combinedRotationInverse * torqueCombined;
+        Vector3 torqueCombinedRotatedTransformed(torqueCombinedRotated.x * inertiaLocalTensorInverse.x, 
+            torqueCombinedRotated.y * inertiaLocalTensorInverse.y, 
+            torqueCombinedRotated.z * inertiaLocalTensorInverse.z);
+        Vector3 angularAcceleration = combinedRotation * torqueCombinedRotatedTransformed;
+
         Vector3 angularVelocity = currentAngularVelocity + timeSubStep * angularAcceleration;
 
         // Calculate new orientation
