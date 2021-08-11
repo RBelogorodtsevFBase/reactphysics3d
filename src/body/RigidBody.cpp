@@ -832,19 +832,26 @@ void RigidBody::setIsSleeping(bool isSleeping) {
 
     bool isBodySleeping = mWorld.mRigidBodyComponents.getIsSleeping(mEntity);
 
-    if (isBodySleeping == isSleeping) return;
+    if (isBodySleeping == isSleeping)
+    {
+        return;
+    }
 
     // If the body is not active, do nothing (it is sleeping)
-    if (!mWorld.mCollisionBodyComponents.getIsActive(mEntity)) {
+    if (!mWorld.mCollisionBodyComponents.getIsActive(mEntity))
+    {
         assert(isBodySleeping);
         return;
     }
 
-    if (isSleeping) {
+    if (isSleeping) 
+    {
         mWorld.mRigidBodyComponents.setSleepTime(mEntity, decimal(0.0));
     }
-    else {
-        if (isBodySleeping) {
+    else 
+    {
+        if (isBodySleeping) 
+        {
             mWorld.mRigidBodyComponents.setSleepTime(mEntity, decimal(0.0));
         }
     }
@@ -857,22 +864,21 @@ void RigidBody::setIsSleeping(bool isSleeping) {
     // Update the currently overlapping pairs
     updateOverlappingPairs();
 
-    if (isSleeping) {
-
+    if (isSleeping) 
+    {
         mWorld.mRigidBodyComponents.setLinearVelocity(mEntity, Vector3::zero());
         mWorld.mRigidBodyComponents.setAngularVelocity(mEntity, Vector3::zero());
         mWorld.mRigidBodyComponents.setExternalForce(mEntity, Vector3::zero());
         mWorld.mRigidBodyComponents.setExternalTorque(mEntity, Vector3::zero());
     }
 
-    RP3D_LOG(mWorld.mConfig.worldName, Logger::Level::Information, Logger::Category::Body,
-         "Body " + std::to_string(mEntity.id) + ": Set isSleeping=" +
-         (isSleeping ? "true" : "false"),  __FILE__, __LINE__);
+    RP3D_LOG(mWorld.mConfig.worldName, Logger::Level::Information, Logger::Category::Body, 
+        "Body " + std::to_string(mEntity.id) + ": Set isSleeping=" + (isSleeping ? "true" : "false"),  __FILE__, __LINE__);
 }
 
 // Update whether the current overlapping pairs where this body is involed are active or not
-void RigidBody::updateOverlappingPairs() {
-
+void RigidBody::updateOverlappingPairs() 
+{
     // For each collider of the body
     const List<Entity>& colliderEntities = mWorld.mCollisionBodyComponents.getColliders(mEntity);
     for (uint i=0; i < colliderEntities.size(); i++) {

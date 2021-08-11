@@ -1050,8 +1050,8 @@ void PhysicsWorld::updateSleepingBodies(decimal timeStep)
                 mRigidBodyComponents.setSleepTime(bodyEntity, decimal(0.0));
                 minSleepTime = decimal(0.0);
             }
-            else {  // If the body velocity is below the sleeping velocity threshold
-
+            else 
+            {  // If the body velocity is below the sleeping velocity threshold
                 // Increase the sleep time
                 decimal sleepTime = mRigidBodyComponents.getSleepTime(bodyEntity);
                 mRigidBodyComponents.setSleepTime(bodyEntity, sleepTime + timeStep);
@@ -1065,8 +1065,8 @@ void PhysicsWorld::updateSleepingBodies(decimal timeStep)
         // If the velocity of all the bodies of the island is under the
         // sleeping velocity threshold for a period of time larger than
         // the time required to become a sleeping body
-        if (minSleepTime >= mTimeBeforeSleep) {
-
+        if (minSleepTime >= mTimeBeforeSleep) 
+        {
             // Put all the bodies of the island to sleep
             for (uint b=0; b < mIslands.bodyEntities[i].size(); b++) {
 
