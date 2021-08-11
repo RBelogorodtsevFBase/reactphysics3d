@@ -42,12 +42,9 @@ class CollisionBody;
  * This class represents a collision contact point between two
  * bodies in the physics engine.
  */
-class ContactPoint {
-
-    private :
-
-        // -------------------- Attributes -------------------- //
-
+class ContactPoint 
+{
+private:
         /// Normalized normal vector of the contact (from body1 toward body2) in world space
         Vector3 mNormal;
 
@@ -63,9 +60,6 @@ class ContactPoint {
         /// True if the contact is a resting contact (exists for more than one time step)
         bool mIsRestingContact;
 
-        /// Cached penetration impulse
-        decimal mPenetrationImpulse;
-
         /// True if the contact point is obsolete
         bool mIsObsolete;
 
@@ -78,17 +72,11 @@ class ContactPoint {
         /// Persistent contact distance threshold;
         decimal mPersistentContactDistanceThreshold;
 
-        // -------------------- Methods -------------------- //
-
         /// Update the contact point with a new one that is similar (very close)
         void update(const ContactPointInfo* contactInfo);
 
         /// Return true if the contact point is similar (close enougth) to another given contact point
         bool isSimilarWithContactPoint(const ContactPointInfo* contactPoint) const;
-
-        /// Set the cached penetration impulse
-        void setPenetrationImpulse(decimal impulse);
-
 
         /// Set the mIsRestingContact variable
         void setIsRestingContact(bool isRestingContact);
@@ -121,9 +109,6 @@ class ContactPoint {
         /// Return the contact point on the second collider in the local-space of the collider
         const Vector3& getLocalPointOnShape2() const;
 
-        /// Return the cached penetration impulse
-        decimal getPenetrationImpulse() const;
-
         /// Return true if the contact is a resting contact
         bool getIsRestingContact() const;
 
@@ -144,7 +129,8 @@ class ContactPoint {
 /**
  * @return The contact normal
  */
-inline const Vector3& ContactPoint::getNormal() const {
+inline const Vector3& ContactPoint::getNormal() const 
+{
     return mNormal;
 }
 
@@ -152,7 +138,8 @@ inline const Vector3& ContactPoint::getNormal() const {
 /**
  * @return The contact point on the first collider in the local-space of the collider
  */
-inline const Vector3& ContactPoint::getLocalPointOnShape1() const {
+inline const Vector3& ContactPoint::getLocalPointOnShape1() const 
+{
     return mLocalPointOnShape1;
 }
 
@@ -160,37 +147,23 @@ inline const Vector3& ContactPoint::getLocalPointOnShape1() const {
 /**
  * @return The contact point on the second collider in the local-space of the collider
  */
-inline const Vector3& ContactPoint::getLocalPointOnShape2() const {
+inline const Vector3& ContactPoint::getLocalPointOnShape2() const 
+{
     return mLocalPointOnShape2;
 }
 
-// Return the cached penetration impulse
-/**
- * @return The penetration impulse
- */
-inline decimal ContactPoint::getPenetrationImpulse() const {
-    return mPenetrationImpulse;
-}
-
 // Return true if the contact point is similar (close enougth) to another given contact point
-inline bool ContactPoint::isSimilarWithContactPoint(const ContactPointInfo* localContactPointBody1) const {
-    return (localContactPointBody1->localPoint1 - mLocalPointOnShape1).lengthSquare() <= (mPersistentContactDistanceThreshold *
-            mPersistentContactDistanceThreshold);
-}
-
-// Set the cached penetration impulse
-/**
- * @param impulse Penetration impulse
- */
-inline void ContactPoint::setPenetrationImpulse(decimal impulse) {
-    mPenetrationImpulse = impulse;
+inline bool ContactPoint::isSimilarWithContactPoint(const ContactPointInfo* localContactPointBody1) const 
+{
+    return (localContactPointBody1->localPoint1 - mLocalPointOnShape1).lengthSquare() <= (mPersistentContactDistanceThreshold * mPersistentContactDistanceThreshold);
 }
 
 // Return true if the contact is a resting contact
 /**
  * @return True if it is a resting contact
  */
-inline bool ContactPoint::getIsRestingContact() const {
+inline bool ContactPoint::getIsRestingContact() const 
+{
     return mIsRestingContact;
 }
 
@@ -198,7 +171,8 @@ inline bool ContactPoint::getIsRestingContact() const {
 /**
  * @param isRestingContact True if it is a resting contact
  */
-inline void ContactPoint::setIsRestingContact(bool isRestingContact) {
+inline void ContactPoint::setIsRestingContact(bool isRestingContact) 
+{
     mIsRestingContact = isRestingContact;
 }
 
@@ -206,7 +180,8 @@ inline void ContactPoint::setIsRestingContact(bool isRestingContact) {
 /**
  * @return the penetration depth (in meters)
  */
-inline decimal ContactPoint::getPenetrationDepth() const {
+inline decimal ContactPoint::getPenetrationDepth() const 
+{
     return mPenetrationDepth;
 }
 
@@ -214,7 +189,8 @@ inline decimal ContactPoint::getPenetrationDepth() const {
 /**
  * @return The size of the contact point in memory (in bytes)
  */
-inline size_t ContactPoint::getSizeInBytes() const {
+inline size_t ContactPoint::getSizeInBytes() const 
+{
     return sizeof(ContactPoint);
 }
 

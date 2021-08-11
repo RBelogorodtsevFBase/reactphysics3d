@@ -38,19 +38,10 @@
 using namespace reactphysics3d;
 using namespace std;
 
-// Constants initialization
-const decimal ContactSolverSystem::BETA = decimal(0.2);
-const decimal ContactSolverSystem::BETA_SPLIT_IMPULSE = decimal(0.2);
-const decimal ContactSolverSystem::SLOP = decimal(0.01);
-
 // Constructor
-ContactSolverSystem::ContactSolverSystem(MemoryManager& memoryManager, PhysicsWorld& world, Islands& islands,
-                                         CollisionBodyComponents& bodyComponents, RigidBodyComponents& rigidBodyComponents,
-                                         ColliderComponents& colliderComponents, decimal& restitutionVelocityThreshold)
-
+ContactSolverSystem::ContactSolverSystem(MemoryManager & memoryManager, PhysicsWorld & world, Islands & islands, CollisionBodyComponents & bodyComponents, RigidBodyComponents & rigidBodyComponents, ColliderComponents & colliderComponents)
     : mMemoryManager(memoryManager)
     , mWorld(world)
-    , mRestitutionVelocityThreshold(restitutionVelocityThreshold)
     , mContactConstraints(nullptr)
     , mContactPoints(nullptr)
     , mIslands(islands)
@@ -59,7 +50,6 @@ ContactSolverSystem::ContactSolverSystem(MemoryManager& memoryManager, PhysicsWo
     , mBodyComponents(bodyComponents)
     , mRigidBodyComponents(rigidBodyComponents)
     , mColliderComponents(colliderComponents)
-    , mIsSplitImpulseActive(true)
     , mXPBDProjections(rigidBodyComponents)
 {
 #ifdef IS_RP3D_PROFILING_ENABLED
@@ -69,8 +59,8 @@ ContactSolverSystem::ContactSolverSystem(MemoryManager& memoryManager, PhysicsWo
 }
 
 // Initialize the contact constraints
-void ContactSolverSystem::init(List<ContactManifold>* contactManifolds, List<ContactPoint>* contactPoints, decimal timeStep) {
-
+void ContactSolverSystem::init(List<ContactManifold>* contactManifolds, List<ContactPoint>* contactPoints, decimal timeStep) 
+{
     mAllContactManifolds = contactManifolds;
     mAllContactPoints = contactPoints;
 

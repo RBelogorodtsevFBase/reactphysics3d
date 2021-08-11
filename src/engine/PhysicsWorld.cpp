@@ -60,8 +60,7 @@ PhysicsWorld::PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& wo
                                         mMemoryManager),
                 mCollisionBodies(mMemoryManager.getHeapAllocator()), mEventListener(nullptr),
                 mName(worldSettings.worldName),  mIslands(mMemoryManager.getSingleFrameAllocator()), mProcessContactPairsOrderIslands(mMemoryManager.getSingleFrameAllocator()),
-                mContactSolverSystem(mMemoryManager, *this, mIslands, mCollisionBodyComponents, mRigidBodyComponents,
-                               mCollidersComponents, mConfig.restitutionVelocityThreshold),
+                mContactSolverSystem(mMemoryManager, *this, mIslands, mCollisionBodyComponents, mRigidBodyComponents, mCollidersComponents),
                 mConstraintSolverSystem(*this, mIslands, mRigidBodyComponents, mTransformComponents, mJointsComponents,
                                         mBallAndSocketJointsComponents, mFixedJointsComponents, mHingeJointsComponents,
                                         mSliderJointsComponents),
@@ -322,72 +321,72 @@ AABB PhysicsWorld::getWorldAABB(const Collider* collider) const {
 /**
  * @param timeStep The amount of time to step the simulation by (in seconds)
  */
-void PhysicsWorld::update(decimal timeStep) {
-
-#ifdef IS_RP3D_PROFILING_ENABLED
-
-    // Increment the frame counter of the profiler
-    mProfiler->incrementFrameCounter();
-#endif
-
-    RP3D_PROFILE("PhysicsWorld::update()", mProfiler);
-
-    // Reset the debug renderer
-    if (mIsDebugRenderingEnabled) {
-        mDebugRenderer.reset();
-    }
-
-    // Compute the collision detection
-    mCollisionDetection.computeCollisionDetection();
-
-    // Create the islands
-    createIslands();
-
-    // Create the actual narrow-phase contacts
-    mCollisionDetection.createContacts();
-
-    // Report the contacts to the user
-    mCollisionDetection.reportContactsAndTriggers();
-
-    // Disable the joints for pair of sleeping bodies
-    disableJointsOfSleepingBodies();
-
-    // Integrate the velocities
-    mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
-
-    // Solve the contacts and constraints
-    solveContactsAndConstraints(timeStep);
-
-    // Integrate the position and orientation of each body
-    mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
-
-    // Solve the position correction for constraints
-    solvePositionCorrection();
-
-    // Update the state (positions and velocities) of the bodies
-    mDynamicsSystem.updateBodiesState();
-
-    // Update the colliders components
-    mCollisionDetection.updateColliders(timeStep);
-
-    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
-
-    // Reset the external force and torque applied to the bodies
-    mDynamicsSystem.resetBodiesForceAndTorque();
-
-    // Reset the islands
-    mIslands.clear();
-
-    mProcessContactPairsOrderIslands.clear(true);
-
-    // Generate debug rendering primitives (if enabled)
-    if (mIsDebugRenderingEnabled) {
-        mDebugRenderer.computeDebugRenderingPrimitives(*this);
-    }
-
-    // Reset the single frame memory allocator
-    mMemoryManager.resetFrameAllocator();
-}
+//void PhysicsWorld::update(decimal timeStep) {
+//
+//#ifdef IS_RP3D_PROFILING_ENABLED
+//
+//    // Increment the frame counter of the profiler
+//    mProfiler->incrementFrameCounter();
+//#endif
+//
+//    RP3D_PROFILE("PhysicsWorld::update()", mProfiler);
+//
+//    // Reset the debug renderer
+//    if (mIsDebugRenderingEnabled) {
+//        mDebugRenderer.reset();
+//    }
+//
+//    // Compute the collision detection
+//    mCollisionDetection.computeCollisionDetection();
+//
+//    // Create the islands
+//    createIslands();
+//
+//    // Create the actual narrow-phase contacts
+//    mCollisionDetection.createContacts();
+//
+//    // Report the contacts to the user
+//    mCollisionDetection.reportContactsAndTriggers();
+//
+//    // Disable the joints for pair of sleeping bodies
+//    disableJointsOfSleepingBodies();
+//
+//    // Integrate the velocities
+//    mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
+//
+//    // Solve the contacts and constraints
+//    solveContactsAndConstraints(timeStep);
+//
+//    // Integrate the position and orientation of each body
+//    mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
+//
+//    // Solve the position correction for constraints
+//    solvePositionCorrection();
+//
+//    // Update the state (positions and velocities) of the bodies
+//    mDynamicsSystem.updateBodiesState();
+//
+//    // Update the colliders components
+//    mCollisionDetection.updateColliders(timeStep);
+//
+//    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
+//
+//    // Reset the external force and torque applied to the bodies
+//    mDynamicsSystem.resetBodiesForceAndTorque();
+//
+//    // Reset the islands
+//    mIslands.clear();
+//
+//    mProcessContactPairsOrderIslands.clear(true);
+//
+//    // Generate debug rendering primitives (if enabled)
+//    if (mIsDebugRenderingEnabled) {
+//        mDebugRenderer.computeDebugRenderingPrimitives(*this);
+//    }
+//
+//    // Reset the single frame memory allocator
+//    mMemoryManager.resetFrameAllocator();
+//}
 
 
 void PhysicsWorld::updateXPBD(decimal timeStep) 
@@ -401,7 +400,8 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
     RP3D_PROFILE("PhysicsWorld::updateXPBD()", mProfiler);
 
     // Reset the debug renderer
-    if (mIsDebugRenderingEnabled) {
+    if (mIsDebugRenderingEnabled) 
+    {
         mDebugRenderer.reset();
     }
 

@@ -120,17 +120,16 @@ class ColliderComponents;
  * friction but also another twist friction constraint to prevent spin of the body around the
  * contact manifold center.
  */
-class ContactSolverSystem {
-
-    private:
-
+class ContactSolverSystem
+{
+private:
         // Structure ContactPointSolver
         /**
          * Contact solver internal data structure that to store all the
          * information relative to a contact point
          */
-        struct ContactPointSolver {
-
+        struct ContactPointSolver
+        {
             /// Pointer to the external contact
             ContactPoint* externalContact;
 
@@ -164,8 +163,8 @@ class ContactSolverSystem {
          * Contact solver internal data structure to store all the
          * information relative to a contact manifold.
          */
-        struct ContactManifoldSolver {
-
+        struct ContactManifoldSolver 
+        {
             /// Pointer to the external contact manifold
             ContactManifold* externalContactManifold;
 
@@ -185,17 +184,6 @@ class ContactSolverSystem {
             int8 nbContacts;
         };
 
-        // -------------------- Constants --------------------- //
-
-        /// Beta value for the penetration depth position correction without split impulses
-        static const decimal BETA;
-
-        /// Beta value for the penetration depth position correction with split impulses
-        static const decimal BETA_SPLIT_IMPULSE;
-
-        /// Slop distance (allowed penetration distance between bodies)
-        static const decimal SLOP;
-
         // -------------------- Attributes -------------------- //
 
         /// Memory manager
@@ -206,9 +194,6 @@ class ContactSolverSystem {
 
         /// Current time step
         decimal mTimeStep;
-
-        /// Reference to the velocity threshold for contact velocity restitution
-        decimal& mRestitutionVelocityThreshold;
 
         /// Contact constraints
         ContactManifoldSolver* mContactConstraints;
@@ -240,23 +225,17 @@ class ContactSolverSystem {
         /// Reference to the colliders components
         ColliderComponents& mColliderComponents;
 
-        /// True if the split impulse position correction is active
-        bool mIsSplitImpulseActive;
-
         XPBDProjections mXPBDProjections;
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 		/// Pointer to the profiler
 		Profiler* mProfiler;
-
 #endif
 
         // -------------------- Methods -------------------- //
 
         /// Compute the collision restitution factor from the restitution factor of each collider
-        decimal computeMixedRestitutionFactor(Collider* collider1,
-                                              Collider* collider2) const;
+        decimal computeMixedRestitutionFactor(Collider* collider1, Collider* collider2) const;
 
         /// Compute the mixed friction coefficient from the friction coefficient of each collider
         decimal computeMixedFrictionCoefficient(Collider* collider1, Collider* collider2) const;
@@ -269,8 +248,7 @@ class ContactSolverSystem {
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        ContactSolverSystem(MemoryManager& memoryManager, PhysicsWorld& world, Islands& islands, CollisionBodyComponents& bodyComponents,
-                      RigidBodyComponents& rigidBodyComponents, ColliderComponents& colliderComponents, decimal& restitutionVelocityThreshold);
+        ContactSolverSystem(MemoryManager& memoryManager, PhysicsWorld& world, Islands& islands, CollisionBodyComponents& bodyComponents, RigidBodyComponents& rigidBodyComponents, ColliderComponents& colliderComponents);
 
         /// Destructor
         ~ContactSolverSystem() = default;
@@ -292,38 +270,18 @@ class ContactSolverSystem {
         /// Release allocated memory
         void reset();
 
-        /// Return true if the split impulses position correction technique is used for contacts
-        bool isSplitImpulseActive() const;
-
-        /// Activate or Deactivate the split impulses for contacts
-        void setIsSplitImpulseActive(bool isActive);
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 		/// Set the profiler
 		void setProfiler(Profiler* profiler);
-
 #endif
 };
 
-// Return true if the split impulses position correction technique is used for contacts
-inline bool ContactSolverSystem::isSplitImpulseActive() const {
-    return mIsSplitImpulseActive;
-}
-
-// Activate or Deactivate the split impulses for contacts
-inline void ContactSolverSystem::setIsSplitImpulseActive(bool isActive) {
-    mIsSplitImpulseActive = isActive;
-}
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 // Set the profiler
-inline void ContactSolverSystem::setProfiler(Profiler* profiler) {
-
+inline void ContactSolverSystem::setProfiler(Profiler* profiler) 
+{
 	mProfiler = profiler;
 }
-
 #endif
 
 }

@@ -90,9 +90,6 @@ class PhysicsWorld {
             /// Default bounciness factor for a rigid body
             decimal defaultBounciness;
 
-            /// Velocity threshold for contact velocity restitution
-            decimal restitutionVelocityThreshold;
-
             /// Default rolling resistance
             decimal defaultRollingRestistance;
 
@@ -134,7 +131,6 @@ class PhysicsWorld {
                 persistentContactDistanceThreshold = decimal(0.03);
                 defaultFrictionCoefficient = decimal(0.3);
                 defaultBounciness = decimal(0.5);
-                restitutionVelocityThreshold = decimal(0.5);
                 defaultRollingRestistance = decimal(0.0);
                 isSleepingEnabled = true;
                 defaultXPBDNbSubsteps = 20,
@@ -160,7 +156,6 @@ class PhysicsWorld {
                 ss << "persistentContactDistanceThreshold=" << persistentContactDistanceThreshold << std::endl;
                 ss << "defaultFrictionCoefficient=" << defaultFrictionCoefficient << std::endl;
                 ss << "defaultBounciness=" << defaultBounciness << std::endl;
-                ss << "restitutionVelocityThreshold=" << restitutionVelocityThreshold << std::endl;
                 ss << "defaultRollingRestistance=" << defaultRollingRestistance << std::endl;
                 ss << "isSleepingEnabled=" << isSleepingEnabled << std::endl;
                 ss << "defaultXPBDNbSubsteps=" << defaultXPBDNbSubsteps << std::endl;
@@ -377,7 +372,7 @@ class PhysicsWorld {
         PhysicsWorld& operator=(const PhysicsWorld& world) = delete;
 
         /// Update the physics simulation
-        void update(decimal timeStep);
+        //void update(decimal timeStep);
 
         /// Update the physics simulation using XPBD
         void updateXPBD(decimal timeStep);
@@ -399,9 +394,6 @@ class PhysicsWorld {
 
         /// Set the number of iterations for the position constraint solver
         void setNbIterationsPositionSolver(uint nbIterations);
-
-        /// Set the position correction technique used for contacts
-        void setContactsPositionCorrectionTechnique(ContactsPositionCorrectionTechnique technique);
 
         /// Set the position correction technique used for joints
         void setJointsPositionCorrectionTechnique(JointsPositionCorrectionTechnique technique);
@@ -648,20 +640,6 @@ inline uint PhysicsWorld::getNbIterationsVelocitySolver() const {
  */
 inline uint PhysicsWorld::getNbIterationsPositionSolver() const {
     return mNbPositionSolverIterations;
-}
-
-// Set the position correction technique used for contacts
-/**
- * @param technique Technique used for the position correction (Baumgarte or Split Impulses)
- */
-inline void PhysicsWorld::setContactsPositionCorrectionTechnique(
-                              ContactsPositionCorrectionTechnique technique) {
-    if (technique == ContactsPositionCorrectionTechnique::BAUMGARTE_CONTACTS) {
-        mContactSolverSystem.setIsSplitImpulseActive(false);
-    }
-    else {
-        mContactSolverSystem.setIsSplitImpulseActive(true);
-    }
 }
 
 // Set the position correction technique used for joints

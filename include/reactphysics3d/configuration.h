@@ -73,14 +73,6 @@ using bodypair = Pair<Entity, Entity>;
 /// NON_LINEAR_GAUSS_SEIDEL : Slower but more precise. This is the option used by default.
 enum class JointsPositionCorrectionTechnique {BAUMGARTE_JOINTS, NON_LINEAR_GAUSS_SEIDEL};
 
-/// Position correction technique used in the contact solver (for contacts)
-/// BAUMGARTE_CONTACTS : Faster but can be innacurate and can lead to unexpected bounciness
-///                      in some situations (due to error correction factor being added to
-///                      the bodies momentum).
-/// SPLIT_IMPULSES : A bit slower but the error correction factor is not added to the
-///                 bodies momentum. This is the option used by default.
-enum class ContactsPositionCorrectionTechnique {BAUMGARTE_CONTACTS, SPLIT_IMPULSES};
-
 // ------------------- Constants ------------------- //
 
 /// Smallest decimal value (negative)

@@ -214,48 +214,38 @@ class CollisionDetectionSystem {
         bool testNarrowPhaseCollision(NarrowPhaseInput& narrowPhaseInput, bool clipWithPreviousAxisIfStillColliding, MemoryAllocator& allocator);
 
         /// Compute the concave vs convex middle-phase algorithm for a given pair of bodies
-        void computeConvexVsConcaveMiddlePhase(uint64 pairIndex, MemoryAllocator& allocator,
-                                               NarrowPhaseInput& narrowPhaseInput);
+        void computeConvexVsConcaveMiddlePhase(uint64 pairIndex, MemoryAllocator& allocator, NarrowPhaseInput& narrowPhaseInput);
 
         /// Swap the previous and current contacts lists
         void swapPreviousAndCurrentContacts();
 
         /// Convert the potential contact into actual contacts
-        void processPotentialContacts(NarrowPhaseInfoBatch& narrowPhaseInfoBatch,
-                                      bool updateLastFrameInfo, List<ContactPointInfo>& potentialContactPoints,
-                                      Map<uint64, uint>* mapPairIdToContactPairIndex,
-                                      List<ContactManifoldInfo>& potentialContactManifolds, List<ContactPair>* contactPairs,
-                                      Map<Entity, List<uint>>& mapBodyToContactPairs);
+        void processPotentialContacts(NarrowPhaseInfoBatch& narrowPhaseInfoBatch, bool updateLastFrameInfo, List<ContactPointInfo>& potentialContactPoints, Map<uint64, uint>* mapPairIdToContactPairIndex,
+            List<ContactManifoldInfo>& potentialContactManifolds, List<ContactPair>* contactPairs, Map<Entity, List<uint>>& mapBodyToContactPairs);
 
         /// Process the potential contacts after narrow-phase collision detection
-        void processAllPotentialContacts(NarrowPhaseInput& narrowPhaseInput, bool updateLastFrameInfo, List<ContactPointInfo>& potentialContactPoints,
-                                         Map<uint64, uint>* mapPairIdToContactPairIndex,
-                                         List<ContactManifoldInfo>& potentialContactManifolds, List<ContactPair>* contactPairs,
-                                         Map<Entity, List<uint>>& mapBodyToContactPairs);
+        void processAllPotentialContacts(NarrowPhaseInput& narrowPhaseInput, bool updateLastFrameInfo, List<ContactPointInfo>& potentialContactPoints, Map<uint64, uint>* mapPairIdToContactPairIndex,
+            List<ContactManifoldInfo>& potentialContactManifolds, List<ContactPair>* contactPairs, Map<Entity, List<uint>>& mapBodyToContactPairs);
 
         /// Reduce the potential contact manifolds and contact points of the overlapping pair contacts
         void reducePotentialContactManifolds(List<ContactPair>* contactPairs, List<ContactManifoldInfo>& potentialContactManifolds,
-                                             const List<ContactPointInfo>& potentialContactPoints) const;
+            const List<ContactPointInfo>& potentialContactPoints) const;
 
         /// Compute the lost contact pairs (contact pairs in contact in the previous frame but not in the current one)
         void computeLostContactPairs();
 
         /// Create the actual contact manifolds and contacts points for testCollision() methods
-        void createSnapshotContacts(List<ContactPair>& contactPairs, List<ContactManifold> &contactManifolds,
-                                    List<ContactPoint>& contactPoints,
-                                    List<ContactManifoldInfo>& potentialContactManifolds,
-                                    List<ContactPointInfo>& potentialContactPoints);
+        void createSnapshotContacts(List<ContactPair>& contactPairs, List<ContactManifold> &contactManifolds, List<ContactPoint>& contactPoints,
+            List<ContactManifoldInfo>& potentialContactManifolds, List<ContactPointInfo>& potentialContactPoints);
 
         /// Initialize the current contacts with the contacts from the previous frame (for warmstarting)
         void initContactsWithPreviousOnes();
 
         /// Reduce the number of contact points of a potential contact manifold
-        void reduceContactPoints(ContactManifoldInfo& manifold, const Transform& shape1ToWorldTransform,
-                                 const List<ContactPointInfo>& potentialContactPoints) const;
+        void reduceContactPoints(ContactManifoldInfo& manifold, const Transform& shape1ToWorldTransform, const List<ContactPointInfo>& potentialContactPoints) const;
 
         /// Report contacts
-        void reportContacts(CollisionCallback& callback, List<ContactPair>* contactPairs,
-                            List<ContactManifold>* manifolds, List<ContactPoint>* contactPoints, List<ContactPair>& lostContactPairs);
+        void reportContacts(CollisionCallback& callback, List<ContactPair>* contactPairs, List<ContactManifold>* manifolds, List<ContactPoint>* contactPoints, List<ContactPair>& lostContactPairs);
 
         /// Report all triggers
         void reportTriggers(EventListener& eventListener, List<ContactPair>* contactPairs, List<ContactPair>& lostContactPairs);
@@ -264,8 +254,7 @@ class CollisionDetectionSystem {
         void reportDebugRenderingContacts(List<ContactPair>* contactPairs, List<ContactManifold>* manifolds, List<ContactPoint>* contactPoints, List<ContactPair>& lostContactPairs);
 
         /// Return the largest depth of all the contact points of a potential manifold
-        decimal computePotentialManifoldLargestContactDepth(const ContactManifoldInfo& manifold,
-                                                            const List<ContactPointInfo>& potentialContactPoints) const;
+        decimal computePotentialManifoldLargestContactDepth(const ContactManifoldInfo& manifold, const List<ContactPointInfo>& potentialContactPoints) const;
 
         /// Process the potential contacts where one collion is a concave shape
         void processSmoothMeshContacts(OverlappingPair* pair);
@@ -284,9 +273,8 @@ class CollisionDetectionSystem {
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        CollisionDetectionSystem(PhysicsWorld* world, ColliderComponents& collidersComponents,
-                           TransformComponents& transformComponents, CollisionBodyComponents& collisionBodyComponents, RigidBodyComponents& rigidBodyComponents,
-                           MemoryManager& memoryManager);
+        CollisionDetectionSystem(PhysicsWorld* world, ColliderComponents& collidersComponents, TransformComponents& transformComponents, 
+            CollisionBodyComponents& collisionBodyComponents, RigidBodyComponents& rigidBodyComponents, MemoryManager& memoryManager);
 
         /// Destructor
         ~CollisionDetectionSystem() = default;
@@ -335,8 +323,7 @@ class CollisionDetectionSystem {
         void computeNarrowPhaseXPBD();
 
         /// Ray casting method
-        void raycast(RaycastCallback* raycastCallback, const Ray& ray,
-                     unsigned short raycastWithCategoryMaskBits) const;
+        void raycast(RaycastCallback* raycastCallback, const Ray& ray, unsigned short raycastWithCategoryMaskBits) const;
 
         /// Return true if two bodies (collide) overlap
         bool testOverlap(CollisionBody* body1, CollisionBody* body2);
@@ -384,13 +371,14 @@ class CollisionDetectionSystem {
 };
 
 // Return a reference to the collision dispatch configuration
-inline CollisionDispatch& CollisionDetectionSystem::getCollisionDispatch() {
+inline CollisionDispatch& CollisionDetectionSystem::getCollisionDispatch() 
+{
     return mCollisionDispatch;
 }
 
 // Add a body to the collision detection
-inline void CollisionDetectionSystem::addCollider(Collider* collider, const AABB& aabb) {
-
+inline void CollisionDetectionSystem::addCollider(Collider* collider, const AABB& aabb) 
+{
     // Add the body to the broad-phase
     mBroadPhaseSystem.addCollider(collider, aabb);
 
@@ -403,44 +391,49 @@ inline void CollisionDetectionSystem::addCollider(Collider* collider, const AABB
 }
 
 // Add a pair of bodies that cannot collide with each other
-inline void CollisionDetectionSystem::addNoCollisionPair(Entity body1Entity, Entity body2Entity) {
+inline void CollisionDetectionSystem::addNoCollisionPair(Entity body1Entity, Entity body2Entity)
+{
     mNoCollisionPairs.add(OverlappingPairs::computeBodiesIndexPair(body1Entity, body2Entity));
 }
 
 // Remove a pair of bodies that cannot collide with each other
-inline void CollisionDetectionSystem::removeNoCollisionPair(Entity body1Entity, Entity body2Entity) {
+inline void CollisionDetectionSystem::removeNoCollisionPair(Entity body1Entity, Entity body2Entity) 
+{
     mNoCollisionPairs.remove(OverlappingPairs::computeBodiesIndexPair(body1Entity, body2Entity));
 }
 
 // Ask for a collision shape to be tested again during broad-phase.
 /// We simply put the shape in the list of collision shape that have moved in the
 /// previous frame so that it is tested for collision again in the broad-phase.
-inline void CollisionDetectionSystem::askForBroadPhaseCollisionCheck(Collider* collider) {
-
+inline void CollisionDetectionSystem::askForBroadPhaseCollisionCheck(Collider* collider) 
+{
     if (collider->getBroadPhaseId() != -1) {
         mBroadPhaseSystem.addMovedCollider(collider->getBroadPhaseId(), collider);
     }
 }
 
 // Return a pointer to the world
-inline PhysicsWorld* CollisionDetectionSystem::getWorld() {
+inline PhysicsWorld* CollisionDetectionSystem::getWorld() 
+{
     return mWorld;
 }
 
 // Return a reference to the memory manager
-inline MemoryManager& CollisionDetectionSystem::getMemoryManager() const {
+inline MemoryManager& CollisionDetectionSystem::getMemoryManager() const 
+{
     return mMemoryManager;
 }
 
 // Update a collider (that has moved for instance)
-inline void CollisionDetectionSystem::updateCollider(Entity colliderEntity, decimal timeStep) {
-
+inline void CollisionDetectionSystem::updateCollider(Entity colliderEntity, decimal timeStep)
+{
     // Update the collider component
     mBroadPhaseSystem.updateCollider(colliderEntity, timeStep);
 }
 
 // Update all the enabled colliders
-inline void CollisionDetectionSystem::updateColliders(decimal timeStep) {
+inline void CollisionDetectionSystem::updateColliders(decimal timeStep) 
+{
     mBroadPhaseSystem.updateColliders(timeStep);
 }
 
