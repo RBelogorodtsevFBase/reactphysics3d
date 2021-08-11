@@ -125,7 +125,8 @@ void ContactSolverSystem::initXPBD(List<ContactManifold> * contactManifolds, Lis
     // For each island of the world
     for (uint i = 0; i < mIslands.getNbIslands(); i++) 
     {
-        if (mIslands.nbContactManifolds[i] > 0) {
+        if (mIslands.nbContactManifolds[i] > 0) 
+        {
             initializeForIsland(i);
         }
     }
@@ -134,8 +135,14 @@ void ContactSolverSystem::initXPBD(List<ContactManifold> * contactManifolds, Lis
 // Release allocated memory
 void ContactSolverSystem::reset() {
 
-    if (mAllContactPoints->size() > 0) mMemoryManager.release(MemoryManager::AllocationType::Frame, mContactPoints, sizeof(ContactPointSolver) * mAllContactPoints->size());
-    if (mAllContactManifolds->size() > 0) mMemoryManager.release(MemoryManager::AllocationType::Frame, mContactConstraints, sizeof(ContactManifoldSolver) * mAllContactManifolds->size());
+    if (mAllContactPoints->size() > 0)
+    {
+        mMemoryManager.release(MemoryManager::AllocationType::Frame, mContactPoints, sizeof(ContactPointSolver) * mAllContactPoints->size());
+    }
+    if (mAllContactManifolds->size() > 0)
+    {
+        mMemoryManager.release(MemoryManager::AllocationType::Frame, mContactConstraints, sizeof(ContactManifoldSolver) * mAllContactManifolds->size());
+    }
 }
 
 // Initialize the constraint solver for a given island
@@ -182,12 +189,6 @@ void ContactSolverSystem::initializeForIsland(uint islandIndex)
         mContactConstraints[mNbContactManifolds].externalContactManifold = &externalManifold;
         mContactConstraints[mNbContactManifolds].normal.setToZero();
 
-        // Get the velocities of the bodies
-        const Vector3& v1 = mRigidBodyComponents.mLinearVelocities[rigidBodyIndex1];
-        const Vector3& w1 = mRigidBodyComponents.mAngularVelocities[rigidBodyIndex1];
-        const Vector3& v2 = mRigidBodyComponents.mLinearVelocities[rigidBodyIndex2];
-        const Vector3& w2 = mRigidBodyComponents.mAngularVelocities[rigidBodyIndex2];
-
         // For each  contact point of the contact manifold
         assert(externalManifold.nbContactPoints > 0);
         uint contactPointsStartIndex = externalManifold.contactPointsIndex;
@@ -203,9 +204,9 @@ void ContactSolverSystem::initializeForIsland(uint islandIndex)
             new (mContactPoints + mNbContactPoints) ContactPointSolver();
             mContactPoints[mNbContactPoints].externalContact = &externalContact;
             mContactPoints[mNbContactPoints].normal = externalContact.getNormal();
-            mContactPoints[mNbContactPoints].r1 = p1 - x1;
-            mContactPoints[mNbContactPoints].r2 = p2 - x2;
-            mContactPoints[mNbContactPoints].penetrationDepth = externalContact.getPenetrationDepth();
+            mContactPoints[mNbContactPoints].r1 = mRigidBodyComponents.mXPBDOrientationsPrevious[rigidBodyIndex1].getInverse() * (p1 - x1);
+            mContactPoints[mNbContactPoints].r2 = mRigidBodyComponents.mXPBDOrientationsPrevious[rigidBodyIndex2].getInverse() * (p2 - x2);
+
             mContactPoints[mNbContactPoints].isRestingContact = externalContact.getIsRestingContact();
             externalContact.setIsRestingContact(true);
 
@@ -238,13 +239,10 @@ void ContactSolverSystem::solvePositionXPBD()
                 continue;
             }
 
-            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
-
             const Vector3 & n = mContactPoints[contactPointIndex].normal;
 
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * mContactPoints[contactPointIndex].r2;
 
             Vector3 p1 = mRigidBodyComponents.mXPBDPositions[indexBody1] + r1;
             Vector3 p2 = mRigidBodyComponents.mXPBDPositions[indexBody2] + r2;
@@ -276,17 +274,14 @@ void ContactSolverSystem::solvePositionXPBD()
 
             const Vector3 & n = mContactPoints[contactPointIndex].normal;
 
-            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
-
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * mContactPoints[contactPointIndex].r2;
 
             Vector3 p1 = mRigidBodyComponents.mXPBDPositions[indexBody1] + r1;
             Vector3 p2 = mRigidBodyComponents.mXPBDPositions[indexBody2] + r2;
 
-            Vector3 p1Previous = mRigidBodyComponents.mXPBDPositionsPrevious[indexBody1] + mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1] * rLocal1;
-            Vector3 p2Previous = mRigidBodyComponents.mXPBDPositionsPrevious[indexBody2] + mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2] * rLocal2;
+            Vector3 p1Previous = mRigidBodyComponents.mXPBDPositionsPrevious[indexBody1] + mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1] * mContactPoints[contactPointIndex].r1;
+            Vector3 p2Previous = mRigidBodyComponents.mXPBDPositionsPrevious[indexBody2] + mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2] * mContactPoints[contactPointIndex].r2;
 
             Vector3 pDelta = (p1 - p1Previous) - (p2 - p2Previous);
             Vector3 pDeltaT = pDelta - n * (pDelta.dot(n));
@@ -318,11 +313,8 @@ void ContactSolverSystem::solveVelocityXPBD()
                 continue;
             }
 
-            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
-
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * mContactPoints[contactPointIndex].r2;
 
             Vector3 v1 = mRigidBodyComponents.mLinearVelocities[indexBody1] + mRigidBodyComponents.mAngularVelocities[indexBody1].cross(r1);
             Vector3 v2 = mRigidBodyComponents.mLinearVelocities[indexBody2] + mRigidBodyComponents.mAngularVelocities[indexBody2].cross(r2);
@@ -365,11 +357,8 @@ void ContactSolverSystem::solveVelocityXPBD()
                 continue;
             }
 
-            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
-
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * mContactPoints[contactPointIndex].r2;
 
             Vector3 v1 = mRigidBodyComponents.mLinearVelocities[indexBody1] + mRigidBodyComponents.mAngularVelocities[indexBody1].cross(r1);
             Vector3 v2 = mRigidBodyComponents.mLinearVelocities[indexBody2] + mRigidBodyComponents.mAngularVelocities[indexBody2].cross(r2);
@@ -404,11 +393,8 @@ void ContactSolverSystem::cacheVnXPBD()
             //    continue;
             //}
 
-            Vector3 rLocal1 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody1].getInverse() * mContactPoints[contactPointIndex].r1;
-            Vector3 rLocal2 = mRigidBodyComponents.mXPBDOrientationsPrevious[indexBody2].getInverse() * mContactPoints[contactPointIndex].r2;
-
-            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * rLocal1;
-            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * rLocal2;
+            Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;
+            Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * mContactPoints[contactPointIndex].r2;
 
             Vector3 v1 = mRigidBodyComponents.mLinearVelocities[indexBody1] + mRigidBodyComponents.mAngularVelocities[indexBody1].cross(r1);
             Vector3 v2 = mRigidBodyComponents.mLinearVelocities[indexBody2] + mRigidBodyComponents.mAngularVelocities[indexBody2].cross(r2);

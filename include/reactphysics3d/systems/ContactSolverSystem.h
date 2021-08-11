@@ -136,14 +136,11 @@ private:
             /// Normal vector of the contact
             Vector3 normal;
 
-            /// Vector from the body 1 center to the contact point
+            /// Local body 1 contact point
             Vector3 r1;
 
-            /// Vector from the body 2 center to the contact point
+            /// Local body 1 contact point
             Vector3 r2;
-
-            /// Penetration depth
-            decimal penetrationDepth;
 
             /// Normal velocity before the XPBD velocity update
             decimal vNPreUpdate;

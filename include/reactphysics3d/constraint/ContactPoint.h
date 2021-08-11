@@ -48,9 +48,6 @@ private:
         /// Normalized normal vector of the contact (from body1 toward body2) in world space
         Vector3 mNormal;
 
-        /// Penetration depth
-        decimal mPenetrationDepth;
-
         /// Contact point on collider 1 in local-space of collider 1
         Vector3 mLocalPointOnShape1;
 
@@ -112,9 +109,6 @@ private:
         /// Return true if the contact is a resting contact
         bool getIsRestingContact() const;
 
-        /// Return the penetration depth
-        decimal getPenetrationDepth() const;
-
         /// Return the number of bytes used by the contact point
         size_t getSizeInBytes() const;
 
@@ -174,15 +168,6 @@ inline bool ContactPoint::getIsRestingContact() const
 inline void ContactPoint::setIsRestingContact(bool isRestingContact) 
 {
     mIsRestingContact = isRestingContact;
-}
-
-// Return the penetration depth of the contact
-/**
- * @return the penetration depth (in meters)
- */
-inline decimal ContactPoint::getPenetrationDepth() const 
-{
-    return mPenetrationDepth;
 }
 
 // Return the number of bytes used by the contact point

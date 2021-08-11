@@ -33,7 +33,6 @@ using namespace std;
 // Constructor
 ContactPoint::ContactPoint(const ContactPointInfo* contactInfo, decimal persistentContactDistanceThreshold)
     : mNormal(contactInfo->normal)
-    , mPenetrationDepth(contactInfo->penetrationDepth)
     , mLocalPointOnShape1(contactInfo->localPoint1)
     , mLocalPointOnShape2(contactInfo->localPoint2)
     , mIsRestingContact(false)
@@ -49,7 +48,6 @@ ContactPoint::ContactPoint(const ContactPointInfo* contactInfo, decimal persiste
 // Constructor
 ContactPoint::ContactPoint(const ContactPointInfo& contactInfo, decimal persistentContactDistanceThreshold)
     : mNormal(contactInfo.normal)
-    , mPenetrationDepth(contactInfo.penetrationDepth)
     , mLocalPointOnShape1(contactInfo.localPoint1)
     , mLocalPointOnShape2(contactInfo.localPoint2)
     , mIsRestingContact(false)
@@ -68,7 +66,6 @@ void ContactPoint::update(const ContactPointInfo * contactInfo)
     assert(contactInfo->penetrationDepth > decimal(0.0));
 
     mNormal = contactInfo->normal;
-    mPenetrationDepth = contactInfo->penetrationDepth;
     mLocalPointOnShape1 = contactInfo->localPoint1;
     mLocalPointOnShape2 = contactInfo->localPoint2;
 

@@ -82,12 +82,6 @@ class CollisionCallback {
                 /// Destructor
                 ~ContactPoint() = default;
 
-                /// Return the penetration depth
-                /**
-                 * @return The penetration depth between the two colliders at this contact point
-                 */
-                decimal getPenetrationDepth() const;
-
                 /// Return the world-space contact normal
                 /**
                  * @return The world-space contact normal
@@ -306,14 +300,6 @@ inline uint CollisionCallback::CallbackData::getNbContactPairs() const {
  */
 inline uint CollisionCallback::ContactPair::getNbContactPoints() const {
    return mContactPair.nbToTalContactPoints;
-}
-
-// Return the penetration depth between the two bodies in contact
-/**
- * @return The penetration depth (larger than zero)
- */
-inline decimal CollisionCallback::ContactPoint::getPenetrationDepth() const {
-   return mContactPoint.getPenetrationDepth();
 }
 
 // Return the world-space contact normal (vector from first body toward second body)

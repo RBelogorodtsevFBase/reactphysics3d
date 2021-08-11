@@ -881,11 +881,12 @@ void PhysicsWorld::createIslands() {
     assert(mProcessContactPairsOrderIslands.size() == 0);
 
     // Reset all the isAlreadyInIsland variables of bodies and joints
-    for (uint b=0; b < mRigidBodyComponents.getNbComponents(); b++) {
-
+    for (uint b=0; b < mRigidBodyComponents.getNbComponents(); b++) 
+    {
         mRigidBodyComponents.mIsAlreadyInIsland[b] = false;
     }
-    for (uint32 i=0; i < mJointsComponents.getNbComponents(); i++) {
+    for (uint32 i=0; i < mJointsComponents.getNbComponents(); i++) 
+    {
         mJointsComponents.mIsAlreadyInIsland[i] = false;
     }
 
@@ -898,10 +899,16 @@ void PhysicsWorld::createIslands() {
     for (uint b=0; b < mRigidBodyComponents.getNbEnabledComponents(); b++) {
 
         // If the body has already been added to an island, we go to the next body
-        if (mRigidBodyComponents.mIsAlreadyInIsland[b]) continue;
+        if (mRigidBodyComponents.mIsAlreadyInIsland[b])
+        {
+            continue;
+        }
 
         // If the body is static, we go to the next body
-        if (mRigidBodyComponents.mBodyTypes[b] == BodyType::STATIC) continue;
+        if (mRigidBodyComponents.mBodyTypes[b] == BodyType::STATIC)
+        {
+            continue;
+        }
 
         // Reset the stack of bodies to visit
         bodyEntityIndicesToVisit.clear();
@@ -914,15 +921,15 @@ void PhysicsWorld::createIslands() {
         uint32 islandIndex = mIslands.addIsland(nbTotalManifolds);
 
         // While there are still some bodies to visit in the stack
-        while (bodyEntityIndicesToVisit.size() > 0) {
-
+        while (bodyEntityIndicesToVisit.size() > 0) 
+        {
             // Get the next body to visit from the stack
             const Entity bodyToVisitEntity = bodyEntityIndicesToVisit.pop();
 
             // Add the body into the island
             mIslands.bodyEntities[islandIndex].add(bodyToVisitEntity);
 
-            RigidBody* rigidBodyToVisit = static_cast<RigidBody*>(mCollisionBodyComponents.getBody(bodyToVisitEntity));
+            RigidBody * rigidBodyToVisit = static_cast<RigidBody*>(mCollisionBodyComponents.getBody(bodyToVisitEntity));
 
             // Awake the body if it is sleeping
             rigidBodyToVisit->setIsSleeping(false);
@@ -932,8 +939,8 @@ void PhysicsWorld::createIslands() {
 
             // If the body is involved in contacts with other bodies
             auto itBodyContactPairs = mCollisionDetection.mMapBodyToContactPairs.find(bodyToVisitEntity);
-            if (itBodyContactPairs != mCollisionDetection.mMapBodyToContactPairs.end()) {
-
+            if (itBodyContactPairs != mCollisionDetection.mMapBodyToContactPairs.end()) 
+            {
                 // For each contact pair in which the current body is involded
                 List<uint>& contactPairs = itBodyContactPairs->second;
                 for (uint p=0; p < contactPairs.size(); p++) {
@@ -945,7 +952,8 @@ void PhysicsWorld::createIslands() {
 
                     // If the colliding body is a RigidBody (and not a CollisionBody) and is not a trigger
                     if (mRigidBodyComponents.hasComponent(pair.body1Entity) && mRigidBodyComponents.hasComponent(pair.body2Entity)
-                        && !mCollidersComponents.getIsTrigger(pair.collider1Entity) && !mCollidersComponents.getIsTrigger(pair.collider2Entity)) {
+                        && !mCollidersComponents.getIsTrigger(pair.collider1Entity) && !mCollidersComponents.getIsTrigger(pair.collider2Entity))
+                    {
 
                         mProcessContactPairsOrderIslands.add(contactPairs[p]);
 
@@ -965,8 +973,8 @@ void PhysicsWorld::createIslands() {
                         bodyEntityIndicesToVisit.push(otherBodyEntity);
                         mRigidBodyComponents.setIsAlreadyInIsland(otherBodyEntity, true);
                     }
-                    else {
-
+                    else
+                    {
                         // Add the contact pair index in the list of contact pairs that won't be part of islands
                         pair.isAlreadyInIsland = true;
                     }
@@ -975,8 +983,8 @@ void PhysicsWorld::createIslands() {
 
             // For each joint in which the current body is involved
             const List<Entity>& joints = mRigidBodyComponents.getJoints(rigidBodyToVisit->getEntity());
-            for (uint32 i=0; i < joints.size(); i++) {
-
+            for (uint32 i=0; i < joints.size(); i++)
+            {
                 // Check if the current joint has already been added into an island
                 if (mJointsComponents.getIsAlreadyInIsland(joints[i])) continue;
 
@@ -998,9 +1006,10 @@ void PhysicsWorld::createIslands() {
 
         // Reset the isAlreadyIsland variable of the static bodies so that they
         // can also be included in the other islands
-        for (uint j=0; j < mRigidBodyComponents.getNbEnabledComponents(); j++) {
-
-            if (mRigidBodyComponents.mBodyTypes[j] == BodyType::STATIC) {
+        for (uint j=0; j < mRigidBodyComponents.getNbEnabledComponents(); j++)
+        {
+            if (mRigidBodyComponents.mBodyTypes[j] == BodyType::STATIC)
+            {
                 mRigidBodyComponents.mIsAlreadyInIsland[j] = false;
             }
         }
@@ -1012,8 +1021,8 @@ void PhysicsWorld::createIslands() {
 // Put bodies to sleep if needed.
 /// For each island, if all the bodies have been almost still for a long enough period of
 /// time, we put all the bodies of the island to sleep.
-void PhysicsWorld::updateSleepingBodies(decimal timeStep) {
-
+void PhysicsWorld::updateSleepingBodies(decimal timeStep) 
+{
     RP3D_PROFILE("PhysicsWorld::updateSleepingBodies()", mProfiler);
 
     const decimal sleepLinearVelocitySquare = mSleepLinearVelocity * mSleepLinearVelocity;
