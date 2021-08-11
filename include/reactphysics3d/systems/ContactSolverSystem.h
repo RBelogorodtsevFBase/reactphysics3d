@@ -146,24 +146,6 @@ class ContactSolverSystem {
             /// Penetration depth
             decimal penetrationDepth;
 
-            /// Velocity restitution bias
-            decimal restitutionBias;
-
-            /// Accumulated normal impulse
-            decimal penetrationImpulse;
-
-            /// Accumulated split impulse for penetration correction
-            decimal penetrationSplitImpulse;
-
-            /// Inverse of the matrix K for the penenetration
-            decimal inversePenetrationMass;
-
-            /// Cross product of r1 with the contact normal
-            Vector3 i1TimesR1CrossN;
-
-            /// Cross product of r2 with the contact normal
-            Vector3 i2TimesR2CrossN;
-
             /// Normal velocity before the XPBD velocity update
             decimal vNPreUpdate;
 
@@ -193,88 +175,11 @@ class ContactSolverSystem {
             /// Index of body 2 in the dynamics components arrays
             uint32 rigidBodyComponentIndexBody2;
 
-            /// Inverse of the mass of body 1
-            decimal massInverseBody1;
-
-            // Inverse of the mass of body 2
-            decimal massInverseBody2;
-
-            /// Inverse inertia tensor of body 1
-            Matrix3x3 inverseInertiaTensorBody1;
-
-            /// Inverse inertia tensor of body 2
-            Matrix3x3 inverseInertiaTensorBody2;
-
             /// Mix friction coefficient for the two bodies
             decimal frictionCoefficient;
 
-            /// Rolling resistance factor between the two bodies
-            decimal rollingResistanceFactor;
-
-            // - Variables used when friction constraints are apply at the center of the manifold-//
-
             /// Average normal vector of the contact manifold
             Vector3 normal;
-
-            /// Point on body 1 where to apply the friction constraints
-            Vector3 frictionPointBody1;
-
-            /// Point on body 2 where to apply the friction constraints
-            Vector3 frictionPointBody2;
-
-            /// R1 vector for the friction constraints
-            Vector3 r1Friction;
-
-            /// R2 vector for the friction constraints
-            Vector3 r2Friction;
-
-            /// Cross product of r1 with 1st friction vector
-            Vector3 r1CrossT1;
-
-            /// Cross product of r1 with 2nd friction vector
-            Vector3 r1CrossT2;
-
-            /// Cross product of r2 with 1st friction vector
-            Vector3 r2CrossT1;
-
-            /// Cross product of r2 with 2nd friction vector
-            Vector3 r2CrossT2;
-
-            /// Matrix K for the first friction constraint
-            decimal inverseFriction1Mass;
-
-            /// Matrix K for the second friction constraint
-            decimal inverseFriction2Mass;
-
-            /// Matrix K for the twist friction constraint
-            decimal inverseTwistFrictionMass;
-
-            /// Matrix K for the rolling resistance constraint
-            Matrix3x3 inverseRollingResistance;
-
-            /// First friction direction at contact manifold center
-            Vector3 frictionVector1;
-
-            /// Second friction direction at contact manifold center
-            Vector3 frictionVector2;
-
-            /// Old 1st friction direction at contact manifold center
-            Vector3 oldFrictionVector1;
-
-            /// Old 2nd friction direction at contact manifold center
-            Vector3 oldFrictionVector2;
-
-            /// First friction direction impulse at manifold center
-            decimal friction1Impulse;
-
-            /// Second friction direction impulse at manifold center
-            decimal friction2Impulse;
-
-            /// Twist friction impulse at contact manifold center
-            decimal frictionTwistImpulse;
-
-            /// Rolling resistance impulse
-            Vector3 rollingResistanceImpulse;
 
             /// Number of contact points
             int8 nbContacts;
@@ -359,15 +264,6 @@ class ContactSolverSystem {
         /// Compute th mixed rolling resistance factor between two colliders
         decimal computeMixedRollingResistance(Collider* collider1, Collider* collider2) const;
 
-        /// Compute the two unit orthogonal vectors "t1" and "t2" that span the tangential friction
-        /// plane for a contact manifold. The two vectors have to be
-        /// such that : t1 x t2 = contactNormal.
-        void computeFrictionVectors(const Vector3& deltaVelocity,
-                                    ContactManifoldSolver& contactPoint) const;
-
-        /// Warm start the solver.
-        void warmStart();
-
    public:
 
         // -------------------- Methods -------------------- //
@@ -392,13 +288,6 @@ class ContactSolverSystem {
 
         /// Initialize the constraint solver for a given island
         void initializeForIsland(uint islandIndex);
-
-        /// Store the computed impulses to use them to
-        /// warm start the solver at the next iteration
-        void storeImpulses();
-
-        /// Solve the contacts
-        void solve();
 
         /// Release allocated memory
         void reset();

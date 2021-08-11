@@ -48,8 +48,7 @@ class DefaultPoolAllocator;
  * a convex shape collides with a concave shape, there might be several
  * contact manifolds with different normal directions.
  * The contact manifold is implemented in a way to cache the contact
- * points among the frames for better stability (warm starting of the
- * contact solver)
+ * points among the frames for better stability
  */
 class ContactManifold {
 
@@ -79,24 +78,6 @@ class ContactManifold {
 
         /// Number of contacts in the cache
         int8 nbContactPoints;
-
-        /// First friction vector of the contact manifold
-        Vector3 frictionVector1;
-
-        /// Second friction vector of the contact manifold
-        Vector3 frictionVector2;
-
-        /// First friction constraint accumulated impulse
-        decimal frictionImpulse1;
-
-        /// Second friction constraint accumulated impulse
-        decimal frictionImpulse2;
-
-        /// Twist friction constraint accumulated impulse
-        decimal frictionTwistImpulse;
-
-        /// Accumulated rolling resistance impulse
-        Vector3 rollingResistanceImpulse;
 
         /// True if the contact manifold has already been added into an island
         bool isAlreadyInIsland;

@@ -522,10 +522,10 @@ void PhysicsWorld::solveContactsAndConstraints(decimal timeStep) {
 
         mConstraintSolverSystem.solveVelocityConstraints();
 
-        mContactSolverSystem.solve();
+        //mContactSolverSystem.solve();
     }
 
-    mContactSolverSystem.storeImpulses();
+    //mContactSolverSystem.storeImpulses();
 
     // Reset the contact solver
     mContactSolverSystem.reset();

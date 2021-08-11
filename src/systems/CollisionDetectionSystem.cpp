@@ -922,20 +922,6 @@ void CollisionDetectionSystem::initContactsWithPreviousOnes() {
                     ContactManifold& previousContactManifold = (*mPreviousContactManifolds)[p];
                     assert(previousContactManifold.nbContactPoints > 0);
                     ContactPoint& previousContactPoint = (*mPreviousContactPoints)[previousContactManifold.contactPointsIndex];
-
-                    // If the previous contact manifold has a similar contact normal with the current manifold
-                    if (previousContactPoint.getNormal().dot(currentContactPointNormal) >= mWorld->mConfig.cosAngleSimilarContactManifold) {
-
-                        // Transfer data from the previous contact manifold to the current one
-                        currentContactManifold.frictionVector1 = previousContactManifold.frictionVector1;
-                        currentContactManifold.frictionVector2 = previousContactManifold.frictionVector2;
-                        currentContactManifold.frictionImpulse1 = previousContactManifold.frictionImpulse1;
-                        currentContactManifold.frictionImpulse2 = previousContactManifold.frictionImpulse2;
-                        currentContactManifold.frictionTwistImpulse = previousContactManifold.frictionTwistImpulse;
-                        currentContactManifold.rollingResistanceImpulse = previousContactManifold.rollingResistanceImpulse;
-
-                        break;
-                    }
                 }
             }
 
