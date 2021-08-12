@@ -58,65 +58,64 @@ enum class BodyType {STATIC, KINEMATIC, DYNAMIC};
  * This class represent the component of the ECS that contains data about a rigid body.
  * The components of the sleeping entities (bodies) are always stored at the end of the array.
  */
-class RigidBodyComponents : public Components {
-
-    private:
-
+class RigidBodyComponents : public Components
+{
+private:
         // -------------------- Attributes -------------------- //
 
         /// Array of body entities of each component
-        Entity* mBodiesEntities;
+        Entity * mBodiesEntities;
 
         /// Array of pointers to the corresponding rigid bodies
-        RigidBody** mRigidBodies;
+        RigidBody ** mRigidBodies;
 
         /// Array of boolean values to know if the body is allowed to go to sleep
-        bool* mIsAllowedToSleep;
+        bool * mIsAllowedToSleep;
 
         /// Array of boolean values to know if the body is sleeping
-        bool* mIsSleeping;
+        bool * mIsSleeping;
 
         /// Array with values for elapsed time since the body velocity was below the sleep velocity
-        decimal* mSleepTimes;
+        decimal * mSleepTimes;
 
         /// Array with the type of bodies (static, kinematic or dynamic)
-        BodyType* mBodyTypes;
+        BodyType * mBodyTypes;
 
         /// Array with the linear velocity of each component
-        Vector3* mLinearVelocities;
+        Vector3 * mLinearVelocities;
 
         /// Array with the angular velocity of each component
         Vector3* mAngularVelocities;
 
         /// Array with the external force of each component
-        Vector3* mExternalForces;
+        Vector3 * mExternalForces;
 
         /// Array with the external torque of each component
-        Vector3* mExternalTorques;
+        Vector3 * mExternalTorques;
 
         /// Array with the linear damping factor of each component
-        decimal* mLinearDampings;
+        decimal * mLinearDampings;
 
         /// Array with the angular damping factor of each component
-        decimal* mAngularDampings;
+        decimal * mAngularDampings;
 
         /// Array with the mass of each component
-        decimal* mMasses;
+        decimal * mMasses;
 
         /// Array with the inverse mass of each component
-        decimal* mInverseMasses;
+        decimal * mInverseMasses;
 
         /// Array with the inertia tensor of each component
-        Vector3* mLocalInertiaTensors;
+        Vector3 * mLocalInertiaTensors;
 
         /// Array with the inverse of the inertia tensor of each component
-        Vector3* mInverseInertiaTensorsLocal;
+        Vector3 * mInverseInertiaTensorsLocal;
 
         /// Array with local inertia orientations of each component
-        Quaternion* mLocalInertiaOrientations;
+        Quaternion * mLocalInertiaOrientations;
 
         /// Array with the constrained linear velocity of each component
-        Vector3* mConstrainedLinearVelocities;
+        Vector3 * mConstrainedLinearVelocities;
 
         /// Array with the constrained angular velocity of each component
         Vector3* mConstrainedAngularVelocities;

@@ -47,11 +47,6 @@ class SolveBallAndSocketJointSystem {
 
     private :
 
-        // -------------------- Constants -------------------- //
-
-        // Beta value for the bias factor of position correction
-        static const decimal BETA;
-
         // -------------------- Attributes -------------------- //
 
         /// Physics world
@@ -71,9 +66,6 @@ class SolveBallAndSocketJointSystem {
 
         /// Current time step of the simulation
         decimal mTimeStep;
-
-        /// True if warm starting of the solver is active
-        bool mIsWarmStartingActive;
 
         XPBDProjections mXPBDProjections;
 
@@ -100,29 +92,12 @@ class SolveBallAndSocketJointSystem {
 
         void solveVelocityXPBD(decimal timeSubStep);
 
-        /// Initialize before solving the constraint
-        void initBeforeSolve();
-
-        /// Warm start the constraint (apply the previous impulse at the beginning of the step)
-         void warmstart();
-
-        /// Solve the velocity constraint
-        void solveVelocityConstraint();
-
-        /// Solve the position constraint (for position error correction)
-        void solvePositionConstraint();
-
         /// Set the time step
         void setTimeStep(decimal timeStep);
 
-        /// Set to true to enable warm starting
-        void setIsWarmStartingActive(bool isWarmStartingActive);
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Set the profiler
         void setProfiler(Profiler* profiler);
-
 #endif
 
 };
@@ -141,12 +116,6 @@ inline void SolveBallAndSocketJointSystem::setTimeStep(decimal timeStep) {
     assert(timeStep > decimal(0.0));
     mTimeStep = timeStep;
 }
-
-// Set to true to enable warm starting
-inline void SolveBallAndSocketJointSystem::setIsWarmStartingActive(bool isWarmStartingActive) {
-    mIsWarmStartingActive = isWarmStartingActive;
-}
-
 
 }
 

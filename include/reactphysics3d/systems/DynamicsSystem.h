@@ -49,22 +49,22 @@ class DynamicsSystem {
         // -------------------- Attributes -------------------- //
 
         /// Physics world
-        PhysicsWorld& mWorld;
+        PhysicsWorld & mWorld;
 
         /// Reference to the collision body components
-        CollisionBodyComponents& mCollisionBodyComponents;
+        CollisionBodyComponents & mCollisionBodyComponents;
 
         /// Reference to the rigid body components
-        RigidBodyComponents& mRigidBodyComponents;
+        RigidBodyComponents & mRigidBodyComponents;
 
         /// Reference to the transform components
-        TransformComponents& mTransformComponents;
+        TransformComponents & mTransformComponents;
 
         /// Reference to the colliders components
-        ColliderComponents& mColliderComponents;
+        ColliderComponents & mColliderComponents;
 
         /// Reference to the variable to know if gravity is enabled in the world
-        bool& mIsGravityEnabled;
+        bool & mIsGravityEnabled;
 
         /// Reference to the world gravity vector
         Vector3& mGravity;
@@ -88,10 +88,8 @@ class DynamicsSystem {
         ~DynamicsSystem() = default;
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Set the profiler
         void setProfiler(Profiler* profiler);
-
 #endif
 
         void initPositionsOrientationsXPBD();
@@ -104,30 +102,17 @@ class DynamicsSystem {
 
         void updateBodiesStatesXPBD();
 
-        /// Integrate the positions and orientations of rigid bodies.
-        void integrateRigidBodiesPositions(decimal timeStep, bool isSplitImpulseActive);
-
-        /// Integrate the velocities of rigid bodies.
-        void integrateRigidBodiesVelocities(decimal timeStep);
-
-        /// Update the postion/orientation of the bodies
-        void updateBodiesState();
-
         /// Reset the external force and torque applied to the bodies
         void resetBodiesForceAndTorque();
-
-        /// Reset the split velocities of the bodies
-        void resetSplitVelocities();
 
 };
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 // Set the profiler
-inline void DynamicsSystem::setProfiler(Profiler* profiler) {
+inline void DynamicsSystem::setProfiler(Profiler * profiler) 
+{
     mProfiler = profiler;
 }
-
 #endif
 
 }

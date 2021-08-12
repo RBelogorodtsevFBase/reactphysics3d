@@ -198,15 +198,6 @@ class ConstraintSolverSystem {
 
         void solveVelocityXPBD(decimal timeSubStep);
 
-        /// Initialize the constraint solver
-        void initialize(decimal dt);
-
-        /// Solve the constraints
-        void solveVelocityConstraints();
-
-        /// Solve the position constraints
-        void solvePositionConstraints();
-
         /// Return true if the Non-Linear-Gauss-Seidel position correction technique is active
         bool getIsNonLinearGaussSeidelPositionCorrectionActive() const;
 

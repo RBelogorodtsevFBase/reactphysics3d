@@ -405,9 +405,6 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         mDebugRenderer.reset();
     }
 
-    // Compute the collision detection broad and middle phases
-    //mCollisionDetection.computeBroadMiddlePhaseXPBD();
-
     // Disable the joints for pair of sleeping bodies
     disableJointsOfSleepingBodies();
 
@@ -420,6 +417,7 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
 
     for (uint i = 0; i < mXPBDNbSubsteps; i++)
     {
+        // Compute the collision detection broad and middle phases
         mCollisionDetection.computeBroadMiddlePhaseXPBD();
 
         // Compute the collision detection narrow phases
@@ -454,17 +452,17 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         // set positions and orientations back from XPBD fields
         mDynamicsSystem.updateBodiesStatesXPBD();
 
+        if (mIsSleepingEnabled)
+        {
+            updateSleepingBodies(timeStep);
+        }
+
         mCollisionDetection.updateColliders(timeSubStep);
 
         // Reset the islands
         mIslands.clear();
 
         mProcessContactPairsOrderIslands.clear(true);
-    }
-
-    if (mIsSleepingEnabled)
-    {
-        updateSleepingBodies(timeStep);
     }
 
     // Reset the external force and torque applied to the bodies
@@ -502,48 +500,6 @@ void PhysicsWorld::solveVelocityXPBD(decimal timeSubStep)
 
     // Reset the contact solver
     mContactSolverSystem.reset();
-}
-
-// Solve the contacts and constraints
-void PhysicsWorld::solveContactsAndConstraints(decimal timeStep) {
-
-    RP3D_PROFILE("PhysicsWorld::solveContactsAndConstraints()", mProfiler);
-
-    // ---------- Solve velocity constraints for joints and contacts ---------- //
-
-    // Initialize the contact solver
-    mContactSolverSystem.init(mCollisionDetection.mCurrentContactManifolds, mCollisionDetection.mCurrentContactPoints, timeStep);
-
-    // Initialize the constraint solver
-    mConstraintSolverSystem.initialize(timeStep);
-
-    // For each iteration of the velocity solver
-    for (uint i=0; i<mNbVelocitySolverIterations; i++) {
-
-        mConstraintSolverSystem.solveVelocityConstraints();
-
-        //mContactSolverSystem.solve();
-    }
-
-    //mContactSolverSystem.storeImpulses();
-
-    // Reset the contact solver
-    mContactSolverSystem.reset();
-}
-
-// Solve the position error correction of the constraints
-void PhysicsWorld::solvePositionCorrection() {
-
-    RP3D_PROFILE("PhysicsWorld::solvePositionCorrection()", mProfiler);
-
-    // ---------- Solve the position error correction for the constraints ---------- //
-
-    // For each iteration of the position (error correction) solver
-    for (uint i=0; i<mNbPositionSolverIterations; i++) {
-
-        // Solve the position constraints
-        mConstraintSolverSystem.solvePositionConstraints();
-    }
 }
 
 // Disable the joints for pair of sleeping bodies
@@ -935,7 +891,10 @@ void PhysicsWorld::createIslands() {
             rigidBodyToVisit->setIsSleeping(false);
 
             // If the current body is static, we do not want to perform the DFS search across that body
-            if (rigidBodyToVisit->getType() == BodyType::STATIC) continue;
+            if (rigidBodyToVisit->getType() == BodyType::STATIC)
+            {
+                continue;
+            }
 
             // If the body is involved in contacts with other bodies
             auto itBodyContactPairs = mCollisionDetection.mMapBodyToContactPairs.find(bodyToVisitEntity);
@@ -943,18 +902,20 @@ void PhysicsWorld::createIslands() {
             {
                 // For each contact pair in which the current body is involded
                 List<uint>& contactPairs = itBodyContactPairs->second;
-                for (uint p=0; p < contactPairs.size(); p++) {
-
+                for (uint p=0; p < contactPairs.size(); p++) 
+                {
                     ContactPair& pair = (*mCollisionDetection.mCurrentContactPairs)[contactPairs[p]];
 
                     // Check if the current contact pair has already been added into an island
-                    if (pair.isAlreadyInIsland) continue;
+                    if (pair.isAlreadyInIsland)
+                    {
+                        continue;
+                    }
 
                     // If the colliding body is a RigidBody (and not a CollisionBody) and is not a trigger
                     if (mRigidBodyComponents.hasComponent(pair.body1Entity) && mRigidBodyComponents.hasComponent(pair.body2Entity)
                         && !mCollidersComponents.getIsTrigger(pair.collider1Entity) && !mCollidersComponents.getIsTrigger(pair.collider2Entity))
                     {
-
                         mProcessContactPairsOrderIslands.add(contactPairs[p]);
 
                         assert(pair.potentialContactManifoldsIndices.size() > 0);
@@ -967,7 +928,10 @@ void PhysicsWorld::createIslands() {
                         const Entity otherBodyEntity = pair.body1Entity == bodyToVisitEntity ? pair.body2Entity : pair.body1Entity;
 
                         // Check if the other body has already been added to the island
-                        if (mRigidBodyComponents.getIsAlreadyInIsland(otherBodyEntity)) continue;
+                        if (mRigidBodyComponents.getIsAlreadyInIsland(otherBodyEntity))
+                        {
+                            continue;
+                        }
 
                         // Insert the other body into the stack of bodies to visit
                         bodyEntityIndicesToVisit.push(otherBodyEntity);
@@ -986,7 +950,10 @@ void PhysicsWorld::createIslands() {
             for (uint32 i=0; i < joints.size(); i++)
             {
                 // Check if the current joint has already been added into an island
-                if (mJointsComponents.getIsAlreadyInIsland(joints[i])) continue;
+                if (mJointsComponents.getIsAlreadyInIsland(joints[i]))
+                {
+                    continue;
+                }
 
                 // Add the joint into the island
                 mJointsComponents.setIsAlreadyInIsland(joints[i], true);
@@ -996,7 +963,10 @@ void PhysicsWorld::createIslands() {
                 const Entity otherBodyEntity = body1Entity == bodyToVisitEntity ? body2Entity : body1Entity;
 
                 // Check if the other body has already been added to the island
-                if (mRigidBodyComponents.getIsAlreadyInIsland(otherBodyEntity)) continue;
+                if (mRigidBodyComponents.getIsAlreadyInIsland(otherBodyEntity))
+                {
+                    continue;
+                }
 
                 // Insert the other body into the stack of bodies to visit
                 bodyEntityIndicesToVisit.push(otherBodyEntity);

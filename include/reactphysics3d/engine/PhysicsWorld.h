@@ -301,15 +301,6 @@ class PhysicsWorld {
         /// Notify the world whether a joint is disabled or not
         void setJointDisabled(Entity jointEntity, bool isDisabled);
 
-        /// Solve the contacts and constraints
-        void solveContactsAndConstraints(decimal timeStep);
-
-        /// Solve the position error correction of the constraints
-        void solvePositionCorrection();
-
-        /// Compute the islands of awake bodies.
-        void computeIslands();
-
         /// Compute the islands using potential contacts and joints and create the actual contacts.
         void createIslands();
 
