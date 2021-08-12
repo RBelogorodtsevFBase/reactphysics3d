@@ -41,45 +41,31 @@ class PhysicsWorld;
 /**
  * This class is responsible to solve the BallAndSocketJoint constraints
  */
-class SolveHingeJointSystem {
-
-    private :
-
-        // -------------------- Constants -------------------- //
-
-        // Beta value for the bias factor of position correction
-        static const decimal BETA;
-
-        // -------------------- Attributes -------------------- //
-
+class SolveHingeJointSystem 
+{
+private:
         /// Physics world
-        PhysicsWorld& mWorld;
+        PhysicsWorld & mWorld;
 
         /// Reference to the rigid body components
-        RigidBodyComponents& mRigidBodyComponents;
+        RigidBodyComponents & mRigidBodyComponents;
 
         /// Reference to transform components
-        TransformComponents& mTransformComponents;
+        TransformComponents & mTransformComponents;
 
         /// Reference to the joint components
-        JointComponents& mJointComponents;
+        JointComponents & mJointComponents;
 
         /// Reference to the hinge joint components
-        HingeJointComponents& mHingeJointComponents;
+        HingeJointComponents & mHingeJointComponents;
 
         /// Current time step of the simulation
         decimal mTimeStep;
 
-        /// True if warm starting of the solver is active
-        bool mIsWarmStartingActive;
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Pointer to the profiler
-        Profiler* mProfiler;
+        Profiler * mProfiler;
 #endif
-
-        // -------------------- Methods -------------------- //
 
         /// Given an angle in radian, this method returns the corresponding
         /// angle in the range [-pi; pi]
@@ -88,76 +74,49 @@ class SolveHingeJointSystem {
         /// Given an "inputAngle" in the range [-pi, pi], this method returns an
         /// angle (modulo 2*pi) in the range [-2*pi; 2*pi] that is closest to one of the
         /// two angle limits in arguments.
-        decimal computeCorrespondingAngleNearLimits(decimal inputAngle, decimal lowerLimitAngle,
-                                                    decimal upperLimitAngle) const;
+        decimal computeCorrespondingAngleNearLimits(decimal inputAngle, decimal lowerLimitAngle, decimal upperLimitAngle) const;
 
         /// Compute the current angle around the hinge axis
-        decimal computeCurrentHingeAngle(Entity jointEntity, const Quaternion& orientationBody1, const Quaternion& orientationBody2);
+        decimal computeCurrentHingeAngle(Entity jointEntity, const Quaternion & orientationBody1, const Quaternion & orientationBody2);
 
-    public :
+public:
 
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        SolveHingeJointSystem(PhysicsWorld& world, RigidBodyComponents& rigidBodyComponents,
-                              TransformComponents& transformComponents,
-                              JointComponents& jointComponents,
-                              HingeJointComponents& hingeJointComponents);
+        SolveHingeJointSystem(PhysicsWorld & world, RigidBodyComponents & rigidBodyComponents, TransformComponents & transformComponents, 
+            JointComponents & jointComponents, HingeJointComponents & hingeJointComponents);
 
         /// Destructor
         ~SolveHingeJointSystem() = default;
 
-        /// Initialize before solving the constraint
-        void initBeforeSolve();
-
-        /// Warm start the constraint (apply the previous impulse at the beginning of the step)
-         void warmstart();
-
-        /// Solve the velocity constraint
-        void solveVelocityConstraint();
-
-        /// Solve the position constraint (for position error correction)
-        void solvePositionConstraint();
-
         /// Set the time step
         void setTimeStep(decimal timeStep);
 
-        /// Set to true to enable warm starting
-        void setIsWarmStartingActive(bool isWarmStartingActive);
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Set the profiler
-        void setProfiler(Profiler* profiler);
-
+        void setProfiler(Profiler * profiler);
 #endif
 
         // ---------- Friendship ----------
 
         friend class HingeJoint;
-
 };
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 // Set the profiler
-inline void SolveHingeJointSystem::setProfiler(Profiler* profiler) {
+inline void SolveHingeJointSystem::setProfiler(Profiler * profiler)
+{
     mProfiler = profiler;
 }
-
 #endif
 
 // Set the time step
-inline void SolveHingeJointSystem::setTimeStep(decimal timeStep) {
+inline void SolveHingeJointSystem::setTimeStep(decimal timeStep) 
+{
     assert(timeStep > decimal(0.0));
     mTimeStep = timeStep;
 }
-
-// Set to true to enable warm starting
-inline void SolveHingeJointSystem::setIsWarmStartingActive(bool isWarmStartingActive) {
-    mIsWarmStartingActive = isWarmStartingActive;
-}
-
 
 }
 

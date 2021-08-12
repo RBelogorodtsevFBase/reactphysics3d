@@ -41,104 +41,62 @@ class PhysicsWorld;
 /**
  * This class is responsible to solve the SliderJoint constraints
  */
-class SolveSliderJointSystem {
-
-    private :
-
-        // -------------------- Constants -------------------- //
-
-        // Beta value for the bias factor of position correction
-        static const decimal BETA;
-
-        // -------------------- Attributes -------------------- //
-
+class SolveSliderJointSystem
+{
+private:
         /// Physics world
-        PhysicsWorld& mWorld;
+        PhysicsWorld & mWorld;
 
         /// Reference to the rigid body components
-        RigidBodyComponents& mRigidBodyComponents;
+        RigidBodyComponents & mRigidBodyComponents;
 
         /// Reference to transform components
-        TransformComponents& mTransformComponents;
+        TransformComponents & mTransformComponents;
 
         /// Reference to the joint components
-        JointComponents& mJointComponents;
+        JointComponents & mJointComponents;
 
         /// Reference to the slider joint components
-        SliderJointComponents& mSliderJointComponents;
+        SliderJointComponents & mSliderJointComponents;
 
         /// Current time step of the simulation
         decimal mTimeStep;
 
-        /// True if warm starting of the solver is active
-        bool mIsWarmStartingActive;
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Pointer to the profiler
-        Profiler* mProfiler;
+        Profiler * mProfiler;
 #endif
-
-        // -------------------- Methods -------------------- //
-
-    public :
-
-        // -------------------- Methods -------------------- //
+public:
 
         /// Constructor
-        SolveSliderJointSystem(PhysicsWorld& world, RigidBodyComponents& rigidBodyComponents,
-                              TransformComponents& transformComponents,
-                              JointComponents& jointComponents,
-                              SliderJointComponents& sliderJointComponents);
+        SolveSliderJointSystem(PhysicsWorld & world, RigidBodyComponents & rigidBodyComponents, 
+            TransformComponents & transformComponents, JointComponents & jointComponents, SliderJointComponents & sliderJointComponents);
 
         /// Destructor
         ~SolveSliderJointSystem() = default;
 
-        /// Initialize before solving the constraint
-        void initBeforeSolve();
-
-        /// Warm start the constraint (apply the previous impulse at the beginning of the step)
-         void warmstart();
-
-        /// Solve the velocity constraint
-        void solveVelocityConstraint();
-
-        /// Solve the position constraint (for position error correction)
-        void solvePositionConstraint();
-
         /// Set the time step
         void setTimeStep(decimal timeStep);
 
-        /// Set to true to enable warm starting
-        void setIsWarmStartingActive(bool isWarmStartingActive);
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Set the profiler
-        void setProfiler(Profiler* profiler);
-
+        void setProfiler(Profiler * profiler);
 #endif
-
 };
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 // Set the profiler
-inline void SolveSliderJointSystem::setProfiler(Profiler* profiler) {
+inline void SolveSliderJointSystem::setProfiler(Profiler * profiler) 
+{
     mProfiler = profiler;
 }
-
 #endif
 
 // Set the time step
-inline void SolveSliderJointSystem::setTimeStep(decimal timeStep) {
+inline void SolveSliderJointSystem::setTimeStep(decimal timeStep) 
+{
     assert(timeStep > decimal(0.0));
     mTimeStep = timeStep;
-}
-
-// Set to true to enable warm starting
-inline void SolveSliderJointSystem::setIsWarmStartingActive(bool isWarmStartingActive) {
-    mIsWarmStartingActive = isWarmStartingActive;
 }
 
 }

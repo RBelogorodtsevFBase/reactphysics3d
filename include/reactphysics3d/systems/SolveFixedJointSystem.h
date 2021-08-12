@@ -41,14 +41,9 @@ class PhysicsWorld;
 /**
  * This class is responsible to solve the FixedJoint constraints
  */
-class SolveFixedJointSystem {
-
-    private :
-
-        // -------------------- Constants -------------------- //
-
-        // Beta value for the bias factor of position correction
-        static const decimal BETA;
+class SolveFixedJointSystem 
+{
+private:
 
         // -------------------- Attributes -------------------- //
 
@@ -70,19 +65,11 @@ class SolveFixedJointSystem {
         /// Current time step of the simulation
         decimal mTimeStep;
 
-        /// True if warm starting of the solver is active
-        bool mIsWarmStartingActive;
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Pointer to the profiler
         Profiler* mProfiler;
 #endif
-
-    public :
-
-        // -------------------- Methods -------------------- //
-
+public:
         /// Constructor
         SolveFixedJointSystem(PhysicsWorld& world, RigidBodyComponents& rigidBodyComponents, TransformComponents& transformComponents,
                               JointComponents& jointComponents, FixedJointComponents& fixedJointComponents);
@@ -90,26 +77,10 @@ class SolveFixedJointSystem {
         /// Destructor
         ~SolveFixedJointSystem() = default;
 
-        /// Initialize before solving the constraint
-        void initBeforeSolve();
-
-        /// Warm start the constraint (apply the previous impulse at the beginning of the step)
-         void warmstart();
-
-        /// Solve the velocity constraint
-        void solveVelocityConstraint();
-
-        /// Solve the position constraint (for position error correction)
-        void solvePositionConstraint();
-
         /// Set the time step
         void setTimeStep(decimal timeStep);
 
-        /// Set to true to enable warm starting
-        void setIsWarmStartingActive(bool isWarmStartingActive);
-
 #ifdef IS_RP3D_PROFILING_ENABLED
-
         /// Set the profiler
         void setProfiler(Profiler* profiler);
 
@@ -118,25 +89,19 @@ class SolveFixedJointSystem {
 };
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
 // Set the profiler
-inline void SolveFixedJointSystem::setProfiler(Profiler* profiler) {
+inline void SolveFixedJointSystem::setProfiler(Profiler * profiler) 
+{
     mProfiler = profiler;
 }
-
 #endif
 
 // Set the time step
-inline void SolveFixedJointSystem::setTimeStep(decimal timeStep) {
+inline void SolveFixedJointSystem::setTimeStep(decimal timeStep) 
+{
     assert(timeStep > decimal(0.0));
     mTimeStep = timeStep;
 }
-
-// Set to true to enable warm starting
-inline void SolveFixedJointSystem::setIsWarmStartingActive(bool isWarmStartingActive) {
-    mIsWarmStartingActive = isWarmStartingActive;
-}
-
 
 }
 

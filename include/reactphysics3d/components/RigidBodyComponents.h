@@ -85,7 +85,7 @@ private:
         Vector3 * mLinearVelocities;
 
         /// Array with the angular velocity of each component
-        Vector3* mAngularVelocities;
+        Vector3 * mAngularVelocities;
 
         /// Array with the external force of each component
         Vector3 * mExternalForces;
@@ -114,46 +114,28 @@ private:
         /// Array with local inertia orientations of each component
         Quaternion * mLocalInertiaOrientations;
 
-        /// Array with the constrained linear velocity of each component
-        Vector3 * mConstrainedLinearVelocities;
+        Vector3 * mXPBDPositions;
 
-        /// Array with the constrained angular velocity of each component
-        Vector3* mConstrainedAngularVelocities;
+        Vector3 * mXPBDPositionsPrevious;
 
-        /// Array with the split linear velocity of each component
-        Vector3* mSplitLinearVelocities;
+        Quaternion * mXPBDOrientations;
 
-        /// Array with the split angular velocity of each component
-        Vector3* mSplitAngularVelocities;
-
-        /// Array with the constrained position of each component (for position error correction)
-        Vector3* mConstrainedPositions;
-
-        Vector3* mXPBDPositions;
-
-        Vector3* mXPBDPositionsPrevious;
-
-        /// Array of constrained orientation for each component (for position error correction)
-        Quaternion* mConstrainedOrientations;
-
-        Quaternion* mXPBDOrientations;
-
-        Quaternion* mXPBDOrientationsPrevious;
+        Quaternion * mXPBDOrientationsPrevious;
 
         /// Array of center of mass of each component (in local-space coordinates)
-        Vector3* mCentersOfMassLocal;
+        Vector3 * mCentersOfMassLocal;
 
         /// Array of center of mass of each component (in world-space coordinates)
-        Vector3* mCentersOfMassWorld;
+        Vector3 * mCentersOfMassWorld;
 
         /// True if the gravity needs to be applied to this component
-        bool* mIsGravityEnabled;
+        bool * mIsGravityEnabled;
 
         /// Array with the boolean value to know if the body has already been added into an island
-        bool* mIsAlreadyInIsland;
+        bool * mIsAlreadyInIsland;
 
         /// For each body, the list of joints entities the body is part of
-        List<Entity>* mJoints;
+        List<Entity> * mJoints;
 
         // -------------------- Methods -------------------- //
 
@@ -289,24 +271,6 @@ private:
         /// Return local inertia orientation of an entity
         const Quaternion& getLocalInertiaOrientation(Entity bodyEntity) const;
 
-        /// Return the constrained linear velocity of an entity
-        const Vector3& getConstrainedLinearVelocity(Entity bodyEntity) const;
-
-        /// Return the constrained angular velocity of an entity
-        const Vector3& getConstrainedAngularVelocity(Entity bodyEntity) const;
-
-        /// Return the split linear velocity of an entity
-        const Vector3& getSplitLinearVelocity(Entity bodyEntity) const;
-
-        /// Return the split angular velocity of an entity
-        const Vector3& getSplitAngularVelocity(Entity bodyEntity) const;
-
-        /// Return the constrained position of an entity
-        Vector3& getConstrainedPosition(Entity bodyEntity);
-
-        /// Return the constrained orientation of an entity
-        Quaternion& getConstrainedOrientation(Entity bodyEntity);
-
         /// Return the local center of mass of an entity
         const Vector3& getCenterOfMassLocal(Entity bodyEntity);
 
@@ -319,25 +283,7 @@ private:
         /// Return true if the entity is already in an island
         bool getIsAlreadyInIsland(Entity bodyEntity) const;
 
-        /// Set the constrained linear velocity of an entity
-        void setConstrainedLinearVelocity(Entity bodyEntity, const Vector3& constrainedLinearVelocity);
-
-        /// Set the constrained angular velocity of an entity
-        void setConstrainedAngularVelocity(Entity bodyEntity, const Vector3& constrainedAngularVelocity);
-
-        /// Set the split linear velocity of an entity
-        void setSplitLinearVelocity(Entity bodyEntity, const Vector3& splitLinearVelocity);
-
-        /// Set the split angular velocity of an entity
-        void setSplitAngularVelocity(Entity bodyEntity, const Vector3& splitAngularVelocity);
-
-        /// Set the constrained position of an entity
-        void setConstrainedPosition(Entity bodyEntity, const Vector3& constrainedPosition);
-
         void setXPBDProposedPosition(Entity bodyEntity, const Vector3& proposedPosition);
-
-        /// Set the constrained orientation of an entity
-        void setConstrainedOrientation(Entity bodyEntity, const Quaternion& constrainedOrientation);
 
         void setXPBDProposedOrientation(Entity bodyEntity, const Quaternion& proposedOrientation);
 
@@ -626,54 +572,6 @@ inline const Quaternion& RigidBodyComponents::getLocalInertiaOrientation(Entity 
     return mLocalInertiaOrientations[mMapEntityToComponentIndex[bodyEntity]];
 }
 
-// Return the constrained linear velocity of an entity
-inline const Vector3& RigidBodyComponents::getConstrainedLinearVelocity(Entity bodyEntity) const {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   return mConstrainedLinearVelocities[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-// Return the constrained angular velocity of an entity
-inline const Vector3& RigidBodyComponents::getConstrainedAngularVelocity(Entity bodyEntity) const {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   return mConstrainedAngularVelocities[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-// Return the split linear velocity of an entity
-inline const Vector3& RigidBodyComponents::getSplitLinearVelocity(Entity bodyEntity) const {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   return mSplitLinearVelocities[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-// Return the split angular velocity of an entity
-inline const Vector3& RigidBodyComponents::getSplitAngularVelocity(Entity bodyEntity) const {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   return mSplitAngularVelocities[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-// Return the constrained position of an entity
-inline Vector3& RigidBodyComponents::getConstrainedPosition(Entity bodyEntity) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   return mConstrainedPositions[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-// Return the constrained orientation of an entity
-inline Quaternion& RigidBodyComponents::getConstrainedOrientation(Entity bodyEntity) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   return mConstrainedOrientations[mMapEntityToComponentIndex[bodyEntity]];
-}
-
 // Return the local center of mass of an entity
 inline const Vector3& RigidBodyComponents::getCenterOfMassLocal(Entity bodyEntity) {
 
@@ -688,54 +586,6 @@ inline const Vector3& RigidBodyComponents::getCenterOfMassWorld(Entity bodyEntit
    assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
 
    return mCentersOfMassWorld[mMapEntityToComponentIndex[bodyEntity]];
-}
-
-// Set the constrained linear velocity of an entity
-inline void RigidBodyComponents::setConstrainedLinearVelocity(Entity bodyEntity, const Vector3& constrainedLinearVelocity) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   mConstrainedLinearVelocities[mMapEntityToComponentIndex[bodyEntity]] = constrainedLinearVelocity;
-}
-
-// Set the constrained angular velocity of an entity
-inline void RigidBodyComponents::setConstrainedAngularVelocity(Entity bodyEntity, const Vector3& constrainedAngularVelocity) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   mConstrainedAngularVelocities[mMapEntityToComponentIndex[bodyEntity]] = constrainedAngularVelocity;
-}
-
-// Set the split linear velocity of an entity
-inline void RigidBodyComponents::setSplitLinearVelocity(Entity bodyEntity, const Vector3& splitLinearVelocity) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   mSplitLinearVelocities[mMapEntityToComponentIndex[bodyEntity]] = splitLinearVelocity;
-}
-
-// Set the split angular velocity of an entity
-inline void RigidBodyComponents::setSplitAngularVelocity(Entity bodyEntity, const Vector3& splitAngularVelocity) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   mSplitAngularVelocities[mMapEntityToComponentIndex[bodyEntity]] = splitAngularVelocity;
-}
-
-// Set the constrained position of an entity
-inline void RigidBodyComponents::setConstrainedPosition(Entity bodyEntity, const Vector3& constrainedPosition) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   mConstrainedPositions[mMapEntityToComponentIndex[bodyEntity]] = constrainedPosition;
-}
-
-// Set the constrained orientation of an entity
-inline void RigidBodyComponents::setConstrainedOrientation(Entity bodyEntity, const Quaternion& constrainedOrientation) {
-
-   assert(mMapEntityToComponentIndex.containsKey(bodyEntity));
-
-   mConstrainedOrientations[mMapEntityToComponentIndex[bodyEntity]] = constrainedOrientation;
 }
 
 // Set the local center of mass of an entity
