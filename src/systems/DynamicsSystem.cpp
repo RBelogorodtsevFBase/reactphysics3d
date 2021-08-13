@@ -43,9 +43,9 @@ DynamicsSystem::DynamicsSystem(PhysicsWorld & world, CollisionBodyComponents & c
 {
 }
 
-void DynamicsSystem::initPositionsOrientationsXPBD()
+void DynamicsSystem::initPositionsOrientations()
 {
-    RP3D_PROFILE("DynamicsSystem::initXPBDPositionsOrientations()", mProfiler);
+    RP3D_PROFILE("DynamicsSystem::initPositionsOrientations()", mProfiler);
 
     for (uint32 i = 0; i < mRigidBodyComponents.getNbEnabledComponents(); i++)
     {

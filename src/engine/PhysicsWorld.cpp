@@ -317,79 +317,7 @@ AABB PhysicsWorld::getWorldAABB(const Collider* collider) const {
    return mCollisionDetection.getWorldAABB(collider);
 }
 
-// Update the physics simulation
-/**
- * @param timeStep The amount of time to step the simulation by (in seconds)
- */
-//void PhysicsWorld::update(decimal timeStep) {
-//
-//#ifdef IS_RP3D_PROFILING_ENABLED
-//
-//    // Increment the frame counter of the profiler
-//    mProfiler->incrementFrameCounter();
-//#endif
-//
-//    RP3D_PROFILE("PhysicsWorld::update()", mProfiler);
-//
-//    // Reset the debug renderer
-//    if (mIsDebugRenderingEnabled) {
-//        mDebugRenderer.reset();
-//    }
-//
-//    // Compute the collision detection
-//    mCollisionDetection.computeCollisionDetection();
-//
-//    // Create the islands
-//    createIslands();
-//
-//    // Create the actual narrow-phase contacts
-//    mCollisionDetection.createContacts();
-//
-//    // Report the contacts to the user
-//    mCollisionDetection.reportContactsAndTriggers();
-//
-//    // Disable the joints for pair of sleeping bodies
-//    disableJointsOfSleepingBodies();
-//
-//    // Integrate the velocities
-//    mDynamicsSystem.integrateRigidBodiesVelocities(timeStep);
-//
-//    // Solve the contacts and constraints
-//    solveContactsAndConstraints(timeStep);
-//
-//    // Integrate the position and orientation of each body
-//    mDynamicsSystem.integrateRigidBodiesPositions(timeStep, mContactSolverSystem.isSplitImpulseActive());
-//
-//    // Solve the position correction for constraints
-//    solvePositionCorrection();
-//
-//    // Update the state (positions and velocities) of the bodies
-//    mDynamicsSystem.updateBodiesState();
-//
-//    // Update the colliders components
-//    mCollisionDetection.updateColliders(timeStep);
-//
-//    if (mIsSleepingEnabled) updateSleepingBodies(timeStep);
-//
-//    // Reset the external force and torque applied to the bodies
-//    mDynamicsSystem.resetBodiesForceAndTorque();
-//
-//    // Reset the islands
-//    mIslands.clear();
-//
-//    mProcessContactPairsOrderIslands.clear(true);
-//
-//    // Generate debug rendering primitives (if enabled)
-//    if (mIsDebugRenderingEnabled) {
-//        mDebugRenderer.computeDebugRenderingPrimitives(*this);
-//    }
-//
-//    // Reset the single frame memory allocator
-//    mMemoryManager.resetFrameAllocator();
-//}
-
-
-void PhysicsWorld::updateXPBD(decimal timeStep) 
+void PhysicsWorld::update(decimal timeStep) 
 {
 #ifdef IS_RP3D_PROFILING_ENABLED
 
@@ -397,7 +325,7 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
     mProfiler->incrementFrameCounter();
 #endif
 
-    RP3D_PROFILE("PhysicsWorld::updateXPBD()", mProfiler);
+    RP3D_PROFILE("PhysicsWorld::update()", mProfiler);
 
     // Reset the debug renderer
     if (mIsDebugRenderingEnabled) 
@@ -405,11 +333,8 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
         mDebugRenderer.reset();
     }
 
-    // Disable the joints for pair of sleeping bodies
-    disableJointsOfSleepingBodies();
-
     // copy positions and orientations to XPBD fields
-    mDynamicsSystem.initPositionsOrientationsXPBD();
+    mDynamicsSystem.initPositionsOrientations();
 
     decimal timeSubStep = timeStep / decimal(mXPBDNbSubsteps);
     decimal timeSubStepInv = decimal(1.0) / timeSubStep;
@@ -431,6 +356,9 @@ void PhysicsWorld::updateXPBD(decimal timeStep)
 
         // Report the contacts to the user
         mCollisionDetection.reportContactsAndTriggers();
+
+        // Disable the joints for pair of sleeping bodies
+        disableJointsOfSleepingBodies();
 
         // Copy positions and orientations to previous position and previous orientation fields
         mDynamicsSystem.backUpPositionsOrientationsXPBD();

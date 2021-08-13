@@ -92,7 +92,7 @@ class DynamicsSystem {
         void setProfiler(Profiler* profiler);
 #endif
 
-        void initPositionsOrientationsXPBD();
+        void initPositionsOrientations();
 
         void backUpPositionsOrientationsXPBD();
 

@@ -363,10 +363,7 @@ class PhysicsWorld {
         PhysicsWorld& operator=(const PhysicsWorld& world) = delete;
 
         /// Update the physics simulation
-        //void update(decimal timeStep);
-
-        /// Update the physics simulation using XPBD
-        void updateXPBD(decimal timeStep);
+        void update(decimal timeStep);
 
         /// Get the number of XPBD substeps per update
         uint getXPBDNbSubsteps() const;
