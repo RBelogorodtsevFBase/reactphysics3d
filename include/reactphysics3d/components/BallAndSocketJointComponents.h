@@ -71,7 +71,7 @@ private:
 
         Vector3 * mLimitsAnglesMax;
 
-        Vector3 * mDampings;
+        decimal * mDampings;
 
         Vector3 * mLambda;
 
@@ -140,7 +140,7 @@ private:
 
         void setLimitsAnglesMax(Entity jointEntity, const Vector3 & angles);
 
-        void setDamping(Entity jointEntity, const Vector3 & dampings);
+        void setDamping(Entity jointEntity, decimal dampings);
 
         void * getUserData(Entity jointEntity) const;
 
@@ -217,7 +217,7 @@ inline void BallAndSocketJointComponents::setLimitsAnglesMax(Entity jointEntity,
     mLimitsAnglesMax[mMapEntityToComponentIndex[jointEntity]] = angles;
 }
 
-inline void BallAndSocketJointComponents::setDamping(Entity jointEntity, const Vector3 & dampings)
+inline void BallAndSocketJointComponents::setDamping(Entity jointEntity, decimal dampings)
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mDampings[mMapEntityToComponentIndex[jointEntity]] = dampings;
@@ -236,21 +236,21 @@ inline void BallAndSocketJointComponents::setUserData(Entity jointEntity, void *
 }
 
 // Return the local anchor point of body 1 for a given joint
-inline const Vector3& BallAndSocketJointComponents::getLocalAnchorPointBody1(Entity jointEntity) const 
+inline const Vector3 & BallAndSocketJointComponents::getLocalAnchorPointBody1(Entity jointEntity) const 
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mLocalAnchorPointBody1[mMapEntityToComponentIndex[jointEntity]];
 }
 
 // Set the local anchor point of body 1 for a given joint
-inline void BallAndSocketJointComponents::setLocalAnchorPointBody1(Entity jointEntity, const Vector3& localAnchoirPointBody1) 
+inline void BallAndSocketJointComponents::setLocalAnchorPointBody1(Entity jointEntity, const Vector3 & localAnchoirPointBody1) 
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mLocalAnchorPointBody1[mMapEntityToComponentIndex[jointEntity]] = localAnchoirPointBody1;
 }
 
 // Return the local anchor point of body 2 for a given joint
-inline const Vector3& BallAndSocketJointComponents::getLocalAnchorPointBody2(Entity jointEntity) const 
+inline const Vector3 & BallAndSocketJointComponents::getLocalAnchorPointBody2(Entity jointEntity) const 
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mLocalAnchorPointBody2[mMapEntityToComponentIndex[jointEntity]];

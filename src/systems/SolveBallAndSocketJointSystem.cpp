@@ -163,8 +163,7 @@ void SolveBallAndSocketJointSystem::solveVelocityXPBD(decimal timeSubStep)
     // For each joint component
     for (uint32 i = 0; i < mBallAndSocketJointComponents.getNbEnabledComponents(); i++)
     {
-        decimal dampingRotation = 5.0f;
-        if (dampingRotation > 0.0)
+        if (mBallAndSocketJointComponents.mDampings[i] > decimal(0.0))
         {
             const Entity jointEntity = mBallAndSocketJointComponents.mJointEntities[i];
 
@@ -178,7 +177,7 @@ void SolveBallAndSocketJointSystem::solveVelocityXPBD(decimal timeSubStep)
             const Vector3 & angularVelocityBody2 = mRigidBodyComponents.mAngularVelocities[componentIndexBody2];
 
             Vector3 angularVelocityDelta = angularVelocityBody2 - angularVelocityBody1;
-            Vector3 corr = angularVelocityDelta * std::min(decimal(1.0), dampingRotation * timeSubStep);
+            Vector3 corr = angularVelocityDelta * std::min(decimal(1.0), mBallAndSocketJointComponents.mDampings[i] * timeSubStep);
 
             mXPBDProjections.applyBodyPairCorrectionVelocityXPBD(corr, 0.0, timeSubStep, componentIndexBody1, componentIndexBody2);
         }

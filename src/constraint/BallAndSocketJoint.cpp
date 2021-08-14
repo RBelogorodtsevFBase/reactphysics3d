@@ -81,7 +81,7 @@ void BallAndSocketJoint::setSpringCallbackZ(void (*callback)(BallAndSocketJoint 
     awakeBodies();
 }
 
-void BallAndSocketJoint::setDamping(const Vector3 & damping)
+void BallAndSocketJoint::setDamping(decimal damping)
 {
     mWorld.mBallAndSocketJointsComponents.setDamping(mEntity, damping);
 

@@ -37,9 +37,8 @@ typedef void (*CallbackType)(BallAndSocketJoint *, decimal, decimal, decimal &, 
 // Constructor
 BallAndSocketJointComponents::BallAndSocketJointComponents(MemoryAllocator& allocator)
     : Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint *) + 
-        sizeof(Quaternion) + sizeof(Quaternion) +
-        sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
-        sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
+        sizeof(Quaternion) + sizeof(Quaternion) + sizeof(decimal) + 
+        sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
         sizeof(CallbackType) + sizeof(CallbackType) + sizeof(CallbackType) + sizeof(void *))
 {
     // Allocate memory for the components data
@@ -69,7 +68,7 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate)
     CallbackType * newCallbacksZ = reinterpret_cast<CallbackType *>(newCallbacksY + nbComponentsToAllocate);
     Vector3 * newLimitsAnglesMin = reinterpret_cast<Vector3 *>(newCallbacksZ + nbComponentsToAllocate);
     Vector3 * newLimitsAnglesMax = reinterpret_cast<Vector3 *>(newLimitsAnglesMin + nbComponentsToAllocate);
-    Vector3 * newDampings = reinterpret_cast<Vector3 *>(newLimitsAnglesMax + nbComponentsToAllocate);
+    decimal * newDampings = reinterpret_cast<decimal *>(newLimitsAnglesMax + nbComponentsToAllocate);
     Vector3 * newLambda = reinterpret_cast<Vector3 *>(newDampings + nbComponentsToAllocate);
     Vector3 * newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newLambda + nbComponentsToAllocate);
     Vector3 * newLocalAnchorPointBody2 = reinterpret_cast<Vector3*>(newLocalAnchorPointBody1 + nbComponentsToAllocate);
@@ -88,7 +87,7 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate)
         memcpy(newCallbacksZ, mCallbacksZ, mNbComponents * sizeof(CallbackType));
         memcpy(newLimitsAnglesMin, mLimitsAnglesMin, mNbComponents * sizeof(Vector3));
         memcpy(newLimitsAnglesMax, mLimitsAnglesMax, mNbComponents * sizeof(Vector3));
-        memcpy(newDampings, mDampings, mNbComponents * sizeof(Vector3));
+        memcpy(newDampings, mDampings, mNbComponents * sizeof(decimal));
         memcpy(newLambda, mLambda, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody1, mLocalAnchorPointBody1, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody2, mLocalAnchorPointBody2, mNbComponents * sizeof(Vector3));
@@ -132,7 +131,7 @@ void BallAndSocketJointComponents::addComponent(Entity jointEntity, bool isSleep
     new (mCallbacksZ + index) CallbackType(nullptr);
     new (mLimitsAnglesMin + index) Vector3(-PI, -PI, -PI);
     new (mLimitsAnglesMax + index) Vector3(+PI, +PI, +PI);
-    new (mDampings + index) Vector3(0, 0, 0);
+    new (mDampings + index) decimal(0);
     new (mLambda + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody1 + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody2 + index) Vector3(0, 0, 0);
@@ -163,7 +162,7 @@ void BallAndSocketJointComponents::moveComponentToIndex(uint32 srcIndex, uint32 
     new (mCallbacksZ + destIndex) CallbackType(mCallbacksZ[srcIndex]);
     new (mLimitsAnglesMin + destIndex) Vector3(mLimitsAnglesMin[srcIndex]);
     new (mLimitsAnglesMax + destIndex) Vector3(mLimitsAnglesMax[srcIndex]);
-    new (mDampings + destIndex) Vector3(mDampings[srcIndex]);
+    new (mDampings + destIndex) decimal(mDampings[srcIndex]);
     new (mLambda + destIndex) Vector3(mLambda[srcIndex]);
     new (mLocalAnchorPointBody1 + destIndex) Vector3(mLocalAnchorPointBody1[srcIndex]);
     new (mLocalAnchorPointBody2 + destIndex) Vector3(mLocalAnchorPointBody2[srcIndex]);
@@ -193,7 +192,7 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     CallbackType callbackZ1(mCallbacksZ[index1]);
     Vector3 limitsAnglesMin1(mLimitsAnglesMin[index1]);
     Vector3 limitsAnglesMax1(mLimitsAnglesMax[index1]);
-    Vector3 dampings1(mDampings[index1]);
+    decimal dampings1(mDampings[index1]);
     Vector3 lambda1(mLambda[index1]);
     Vector3 localAnchorPointBody1(mLocalAnchorPointBody1[index1]);
     Vector3 localAnchorPointBody2(mLocalAnchorPointBody2[index1]);
@@ -214,7 +213,7 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     new (mCallbacksZ + index2) CallbackType(callbackZ1);
     new (mLimitsAnglesMin + index2) Vector3(limitsAnglesMin1);
     new (mLimitsAnglesMax + index2) Vector3(limitsAnglesMax1);
-    new (mDampings + index2) Vector3(dampings1);
+    new (mDampings + index2) decimal(dampings1);
     new (mLambda + index2) Vector3(lambda1);
     new (mLocalAnchorPointBody1 + index2) Vector3(localAnchorPointBody1);
     new (mLocalAnchorPointBody2 + index2) Vector3(localAnchorPointBody2);
@@ -246,7 +245,7 @@ void BallAndSocketJointComponents::destroyComponent(uint32 index)
     mCallbacksZ[index] = nullptr;
     mLimitsAnglesMin[index].~Vector3();
     mLimitsAnglesMax[index].~Vector3();
-    mDampings[index].~Vector3();
+    mDampings[index].~decimal();
     mLambda[index].~Vector3();
     mLocalAnchorPointBody1[index].~Vector3();
     mLocalAnchorPointBody2[index].~Vector3();

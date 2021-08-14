@@ -100,7 +100,7 @@ public:
 
         void setSpringCallbackZ(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
 
-        void setDamping(const Vector3 & damping);
+        void setDamping(decimal damping);
 
         void * getUserData() const;
 
