@@ -81,18 +81,9 @@ void BallAndSocketJoint::setSpringCallbackZ(void (*callback)(BallAndSocketJoint 
     awakeBodies();
 }
 
-void BallAndSocketJoint::setSpringParams(const Vector3 & stiffnessPositive, const Vector3 & stiffnessNegative, const Vector3 & damping)
+void BallAndSocketJoint::setDamping(const Vector3 & damping)
 {
-    mWorld.mBallAndSocketJointsComponents.setStiffnessPositive(mEntity, stiffnessPositive);
-    mWorld.mBallAndSocketJointsComponents.setStiffnessNegative(mEntity, stiffnessNegative);
     mWorld.mBallAndSocketJointsComponents.setDamping(mEntity, damping);
-
-    awakeBodies();
-}
-
-void BallAndSocketJoint::setSpringTarget(const Vector3 & angles)
-{
-    mWorld.mBallAndSocketJointsComponents.setSpringTarget(mEntity, angles);
 
     awakeBodies();
 }

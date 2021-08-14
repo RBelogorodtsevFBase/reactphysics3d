@@ -71,19 +71,9 @@ private:
 
         Vector3 * mLimitsAnglesMax;
 
-        Vector3 * mStiffnessesPositive;
-
-        Vector3 * mStiffnessesNegative;
-
         Vector3 * mDampings;
 
-        Vector3 * mSpringTargets;
-
-        decimal * mSwingXLambda;
-
-        decimal * mSwingYLambda;
-
-        decimal * mTwistLambda;
+        Vector3 * mLambda;
 
         /// Anchor point of body 1 (in local-space coordinates of body 1)
         Vector3* mLocalAnchorPointBody1;
@@ -171,13 +161,7 @@ private:
 
         void setLimitsAnglesMax(Entity jointEntity, const Vector3 & angles);
 
-        void setStiffnessPositive(Entity jointEntity, const Vector3 & stiffnesses);
-
-        void setStiffnessNegative(Entity jointEntity, const Vector3 & stiffnesses);
-
         void setDamping(Entity jointEntity, const Vector3 & dampings);
-
-        void setSpringTarget(Entity jointEntity, const Vector3 & springTarget);
 
         void * getUserData(Entity jointEntity) const;
 
@@ -296,28 +280,10 @@ inline void BallAndSocketJointComponents::setLimitsAnglesMax(Entity jointEntity,
     mLimitsAnglesMax[mMapEntityToComponentIndex[jointEntity]] = angles;
 }
 
-inline void BallAndSocketJointComponents::setStiffnessPositive(Entity jointEntity, const Vector3 & stiffnesses)
-{
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mStiffnessesPositive[mMapEntityToComponentIndex[jointEntity]] = stiffnesses;
-}
-
-inline void BallAndSocketJointComponents::setStiffnessNegative(Entity jointEntity, const Vector3 & stiffnesses)
-{
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mStiffnessesNegative[mMapEntityToComponentIndex[jointEntity]] = stiffnesses;
-}
-
 inline void BallAndSocketJointComponents::setDamping(Entity jointEntity, const Vector3 & dampings)
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mDampings[mMapEntityToComponentIndex[jointEntity]] = dampings;
-}
-
-inline void BallAndSocketJointComponents::setSpringTarget(Entity jointEntity, const Vector3 & springTarget)
-{
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mSpringTargets[mMapEntityToComponentIndex[jointEntity]] = springTarget;
 }
 
 inline void * BallAndSocketJointComponents::getUserData(Entity jointEntity) const

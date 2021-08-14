@@ -84,7 +84,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             Vector3 z2_ = z2 - x1 * z2.dot(x1);
             z2_.normalize();
 
-            decimal & lambda = mBallAndSocketJointComponents.mSwingXLambda[i];
+            decimal & lambda = mBallAndSocketJointComponents.mLambda[i].x;
             decimal angularVelocityDeltaProjected = angularVelocityDelta.dot(x1);
 
             mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, x1, z1, z2_, limitsAnglesMin.x, limitsAnglesMax.x, 
@@ -103,7 +103,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
             Vector3 z2_ = z2 - y1 * z2.dot(y1);
             z2_.normalize();
 
-            decimal & lambda = mBallAndSocketJointComponents.mSwingYLambda[i];
+            decimal & lambda = mBallAndSocketJointComponents.mLambda[i].y;
             decimal angularVelocityDeltaProjected = angularVelocityDelta.dot(y1);
 
             mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, y1, z1, z2_, limitsAnglesMin.y, limitsAnglesMax.y, 
@@ -139,7 +139,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
                 maxCorr = timeSubStep;
             }
 
-            decimal & lambda = mBallAndSocketJointComponents.mTwistLambda[i];
+            decimal & lambda = mBallAndSocketJointComponents.mLambda[i].z;
             decimal angularVelocityDeltaProjected = angularVelocityDelta.dot(n);
 
             mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, n, a1, a2, limitsAnglesMin.z, limitsAnglesMax.z, 
@@ -174,8 +174,8 @@ void SolveBallAndSocketJointSystem::solveVelocityXPBD(decimal timeSubStep)
             const uint32 componentIndexBody1 = mRigidBodyComponents.getEntityIndex(body1Entity);
             const uint32 componentIndexBody2 = mRigidBodyComponents.getEntityIndex(body2Entity);
 
-            const Vector3& angularVelocityBody1 = mRigidBodyComponents.mAngularVelocities[componentIndexBody1];
-            const Vector3& angularVelocityBody2 = mRigidBodyComponents.mAngularVelocities[componentIndexBody2];
+            const Vector3 & angularVelocityBody1 = mRigidBodyComponents.mAngularVelocities[componentIndexBody1];
+            const Vector3 & angularVelocityBody2 = mRigidBodyComponents.mAngularVelocities[componentIndexBody2];
 
             Vector3 angularVelocityDelta = angularVelocityBody2 - angularVelocityBody1;
             Vector3 corr = angularVelocityDelta * std::min(decimal(1.0), dampingRotation * timeSubStep);
