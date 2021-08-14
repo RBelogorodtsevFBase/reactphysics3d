@@ -32,25 +32,27 @@
 // We want to use the ReactPhysics3D namespace
 using namespace reactphysics3d;
 
+typedef void (*CallbackType)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
+
 // Constructor
 BallAndSocketJointComponents::BallAndSocketJointComponents(MemoryAllocator& allocator)
-                    :Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint*) + sizeof(Vector3) +
-                                sizeof(bool) + sizeof(bool) + sizeof(bool) +
-                                sizeof(decimal) + sizeof(decimal) + sizeof(decimal) +
-                                sizeof(Quaternion) + sizeof(Quaternion) +
-                                sizeof(Vector3) + sizeof(Vector3) +
-                                sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
-                                sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
-                                sizeof(Matrix3x3) + sizeof(Matrix3x3) + sizeof(Vector3) +
-                                sizeof(Matrix3x3) + sizeof(Vector3)) {
-
+    : Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint*) + sizeof(Vector3) + 
+        sizeof(decimal) + sizeof(decimal) + sizeof(decimal) + 
+        sizeof(Quaternion) + sizeof(Quaternion) +
+        sizeof(Vector3) + sizeof(Vector3) +
+        sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
+        sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
+        sizeof(Matrix3x3) + sizeof(Matrix3x3) + sizeof(Vector3) +
+        sizeof(Matrix3x3) + sizeof(Vector3) +
+        sizeof(CallbackType) + sizeof(CallbackType) + sizeof(CallbackType) + sizeof(void *))
+{
     // Allocate memory for the components data
     allocate(INIT_NB_ALLOCATED_COMPONENTS);
 }
 
 // Allocate memory for a given number of components
-void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
-
+void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate)
+{
     assert(nbComponentsToAllocate > mNbAllocatedComponents);
 
     // Size for the data of a single component (in bytes)
@@ -62,13 +64,14 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
 
     // New pointers to components data
     Entity* newJointEntities = static_cast<Entity*>(newBuffer);
-    BallAndSocketJoint** newJoints = reinterpret_cast<BallAndSocketJoint**>(newJointEntities + nbComponentsToAllocate);
-    bool * newLimitSwingXEnabled = reinterpret_cast<bool*>(newJoints + nbComponentsToAllocate);
-    bool * newLimitSwingYEnabled = reinterpret_cast<bool*>(newLimitSwingXEnabled + nbComponentsToAllocate);
-    bool * newLimitTwistEnabled = reinterpret_cast<bool*>(newLimitSwingYEnabled + nbComponentsToAllocate);
-    Quaternion * newTargetLocalInBody1 = reinterpret_cast<Quaternion *>(newLimitTwistEnabled + nbComponentsToAllocate);
+    BallAndSocketJoint ** newJoints = reinterpret_cast<BallAndSocketJoint **>(newJointEntities + nbComponentsToAllocate);
+    void ** newUserData = reinterpret_cast<void **>(newJoints + nbComponentsToAllocate);
+    Quaternion * newTargetLocalInBody1 = reinterpret_cast<Quaternion *>(newUserData + nbComponentsToAllocate);
     Quaternion * newReferenceLocalInBody2 = reinterpret_cast<Quaternion *>(newTargetLocalInBody1 + nbComponentsToAllocate);
-    Vector3 * newLimitsAnglesMin = reinterpret_cast<Vector3 *>(newReferenceLocalInBody2 + nbComponentsToAllocate);
+    CallbackType * newCallbacksX = reinterpret_cast<CallbackType *>(newReferenceLocalInBody2 + nbComponentsToAllocate);
+    CallbackType * newCallbacksY = reinterpret_cast<CallbackType *>(newCallbacksX + nbComponentsToAllocate);
+    CallbackType * newCallbacksZ = reinterpret_cast<CallbackType *>(newCallbacksY + nbComponentsToAllocate);
+    Vector3 * newLimitsAnglesMin = reinterpret_cast<Vector3 *>(newCallbacksZ + nbComponentsToAllocate);
     Vector3 * newLimitsAnglesMax = reinterpret_cast<Vector3 *>(newLimitsAnglesMin + nbComponentsToAllocate);
     Vector3 * newStiffnessesPositive = reinterpret_cast<Vector3 *>(newLimitsAnglesMax + nbComponentsToAllocate);
     Vector3 * newStiffnessesNegative = reinterpret_cast<Vector3 *>(newStiffnessesPositive + nbComponentsToAllocate);
@@ -92,12 +95,13 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     {
         // Copy component data from the previous buffer to the new one
         memcpy(newJointEntities, mJointEntities, mNbComponents * sizeof(Entity));
-        memcpy(newJoints, mJoints, mNbComponents * sizeof(BallAndSocketJoint*));
-        memcpy(newLimitSwingXEnabled, mLimitSwingXEnabled, mNbComponents * sizeof(bool));
-        memcpy(newLimitSwingYEnabled, mLimitSwingYEnabled, mNbComponents * sizeof(bool));
-        memcpy(newLimitTwistEnabled, mLimitTwistEnabled, mNbComponents * sizeof(bool));
+        memcpy(newJoints, mJoints, mNbComponents * sizeof(BallAndSocketJoint *));
+        memcpy(newUserData, mUserData, mNbComponents * sizeof(void *));
         memcpy(newTargetLocalInBody1, mTargetLocalInBody1, mNbComponents * sizeof(Quaternion));
         memcpy(newReferenceLocalInBody2, mReferenceLocalInBody2, mNbComponents * sizeof(Quaternion));
+        memcpy(newCallbacksX, mCallbacksX, mNbComponents * sizeof(CallbackType));
+        memcpy(newCallbacksY, mCallbacksY, mNbComponents * sizeof(CallbackType));
+        memcpy(newCallbacksZ, mCallbacksZ, mNbComponents * sizeof(CallbackType));
         memcpy(newLimitsAnglesMin, mLimitsAnglesMin, mNbComponents * sizeof(Vector3));
         memcpy(newLimitsAnglesMax, mLimitsAnglesMax, mNbComponents * sizeof(Vector3));
         memcpy(newStiffnessesPositive, mStiffnessesPositive, mNbComponents * sizeof(Vector3));
@@ -124,12 +128,13 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate) {
     mBuffer = newBuffer;
     mJointEntities = newJointEntities;
     mJoints = newJoints;
+    mUserData = newUserData;
     mNbAllocatedComponents = nbComponentsToAllocate;
-    mLimitSwingXEnabled = newLimitSwingXEnabled;
-    mLimitSwingYEnabled = newLimitSwingYEnabled;
-    mLimitTwistEnabled = newLimitTwistEnabled;
     mTargetLocalInBody1 = newTargetLocalInBody1;
     mReferenceLocalInBody2 = newReferenceLocalInBody2;
+    mCallbacksX = newCallbacksX;
+    mCallbacksY = newCallbacksY;
+    mCallbacksZ = newCallbacksZ;
     mLimitsAnglesMin = newLimitsAnglesMin;
     mLimitsAnglesMax = newLimitsAnglesMax;
     mStiffnessesPositive = newStiffnessesPositive;
@@ -159,13 +164,14 @@ void BallAndSocketJointComponents::addComponent(Entity jointEntity, bool isSleep
     // Insert the new component data
     new (mJointEntities + index) Entity(jointEntity);
     mJoints[index] = nullptr;
-    new (mLimitSwingXEnabled + index) bool(false);
-    new (mLimitSwingYEnabled + index) bool(false);
-    new (mLimitTwistEnabled + index) bool(false);
+    mUserData[index] = nullptr;
     new (mTargetLocalInBody1 + index) Quaternion(0, 0, 0, 1);
     new (mReferenceLocalInBody2 + index) Quaternion(0, 0, 0, 1);
-    new (mLimitsAnglesMin + index) Vector3(0, 0, 0);
-    new (mLimitsAnglesMax + index) Vector3(0, 0, 0);
+    new (mCallbacksX + index) CallbackType(nullptr);
+    new (mCallbacksY + index) CallbackType(nullptr);
+    new (mCallbacksZ + index) CallbackType(nullptr);
+    new (mLimitsAnglesMin + index) Vector3(-PI, -PI, -PI);
+    new (mLimitsAnglesMax + index) Vector3(+PI, +PI, +PI);
     new (mStiffnessesPositive + index) Vector3(0, 0, 0);
     new (mStiffnessesNegative + index) Vector3(0, 0, 0);
     new (mDampings + index) Vector3(0, 0, 0);
@@ -201,11 +207,12 @@ void BallAndSocketJointComponents::moveComponentToIndex(uint32 srcIndex, uint32 
     // Copy the data of the source component to the destination location
     new (mJointEntities + destIndex) Entity(mJointEntities[srcIndex]);
     mJoints[destIndex] = mJoints[srcIndex];
-    new (mLimitSwingXEnabled + destIndex) bool(mLimitSwingXEnabled[srcIndex]);
-    new (mLimitSwingYEnabled + destIndex) bool(mLimitSwingYEnabled[srcIndex]);
-    new (mLimitTwistEnabled + destIndex) bool(mLimitTwistEnabled[srcIndex]);
+    mUserData[destIndex] = mUserData[srcIndex];
     new (mTargetLocalInBody1 + destIndex) Quaternion(mTargetLocalInBody1[srcIndex]);
     new (mReferenceLocalInBody2 + destIndex) Quaternion(mReferenceLocalInBody2[srcIndex]);
+    new (mCallbacksX + destIndex) CallbackType(mCallbacksX[srcIndex]);
+    new (mCallbacksY + destIndex) CallbackType(mCallbacksY[srcIndex]);
+    new (mCallbacksZ + destIndex) CallbackType(mCallbacksZ[srcIndex]);
     new (mLimitsAnglesMin + destIndex) Vector3(mLimitsAnglesMin[srcIndex]);
     new (mLimitsAnglesMax + destIndex) Vector3(mLimitsAnglesMax[srcIndex]);
     new (mStiffnessesPositive + destIndex) Vector3(mStiffnessesPositive[srcIndex]);
@@ -241,12 +248,13 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
 
     // Copy component 1 data
     Entity jointEntity1(mJointEntities[index1]);
-    BallAndSocketJoint* joint1 = mJoints[index1];
-    bool limitSwingXEnabled1(mLimitSwingXEnabled[index1]);
-    bool limitSwingYEnabled1(mLimitSwingYEnabled[index1]);
-    bool limitTwistEnabled1(mLimitTwistEnabled[index1]);
+    BallAndSocketJoint * joint1 = mJoints[index1];
+    void * userData1 = mUserData[index1];
     Quaternion targetLocalInBody1(mTargetLocalInBody1[index1]);
     Quaternion referenceLocalInBody2(mReferenceLocalInBody2[index1]);
+    CallbackType callbackX1(mCallbacksX[index1]);
+    CallbackType callbackY1(mCallbacksY[index1]);
+    CallbackType callbackZ1(mCallbacksZ[index1]);
     Vector3 limitsAnglesMin1(mLimitsAnglesMin[index1]);
     Vector3 limitsAnglesMax1(mLimitsAnglesMax[index1]);
     Vector3 stiffnessesPositive1(mStiffnessesPositive[index1]);
@@ -274,11 +282,12 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     // Reconstruct component 1 at component 2 location
     new (mJointEntities + index2) Entity(jointEntity1);
     mJoints[index2] = joint1;
-    new (mLimitSwingXEnabled + index2) bool(limitSwingXEnabled1);
-    new (mLimitSwingYEnabled + index2) bool(limitSwingYEnabled1);
-    new (mLimitTwistEnabled + index2) bool(limitTwistEnabled1);
+    mUserData[index2] = userData1;
     new (mTargetLocalInBody1 + index2) Quaternion(targetLocalInBody1);
     new (mReferenceLocalInBody2 + index2) Quaternion(referenceLocalInBody2);
+    new (mCallbacksX + index2) CallbackType(callbackX1);
+    new (mCallbacksY + index2) CallbackType(callbackY1);
+    new (mCallbacksZ + index2) CallbackType(callbackZ1);
     new (mLimitsAnglesMin + index2) Vector3(limitsAnglesMin1);
     new (mLimitsAnglesMax + index2) Vector3(limitsAnglesMax1);
     new (mStiffnessesPositive + index2) Vector3(stiffnessesPositive1);
@@ -307,8 +316,8 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
 }
 
 // Destroy a component at a given index
-void BallAndSocketJointComponents::destroyComponent(uint32 index) {
-
+void BallAndSocketJointComponents::destroyComponent(uint32 index)
+{
     Components::destroyComponent(index);
 
     assert(mMapEntityToComponentIndex[mJointEntities[index]] == index);
@@ -317,8 +326,12 @@ void BallAndSocketJointComponents::destroyComponent(uint32 index) {
 
     mJointEntities[index].~Entity();
     mJoints[index] = nullptr;
+    mUserData[index] = nullptr;
     mTargetLocalInBody1[index].~Quaternion();
     mReferenceLocalInBody2[index].~Quaternion();
+    mCallbacksX[index] = nullptr;
+    mCallbacksY[index] = nullptr;
+    mCallbacksZ[index] = nullptr;
     mLimitsAnglesMin[index].~Vector3();
     mLimitsAnglesMax[index].~Vector3();
     mStiffnessesPositive[index].~Vector3();

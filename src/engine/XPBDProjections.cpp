@@ -23,7 +23,7 @@ void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componen
     {
         phi -= decimal(2.0) * PI;
     }
-    if (phi < -PI)
+    else if (phi < -PI)
     {
         phi += decimal(2.0) * PI;
     }
@@ -49,6 +49,83 @@ void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componen
 
         applyBodyPairCorrectionXPBD(omega, compliance, dt, lambda, componentIndexBodyA, componentIndexBodyB);
     }
+}
+
+void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle,
+    void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), BallAndSocketJoint * joint, 
+    decimal velocity, decimal dt, decimal & lambda, decimal maxCorr)
+{
+    // the key function to handle all angular joint limits
+    Vector3 c = n1.cross(n2);
+
+    decimal phi = std::asin(c.dot(n));
+    if (n1.dot(n2) < decimal(0.0))
+    {
+        phi = PI - phi;
+    }
+    if (phi > PI)
+    {
+        phi -= decimal(2.0) * PI;
+    }
+    else if (phi < -PI)
+    {
+        phi += decimal(2.0) * PI;
+    }
+
+    if ((phi < minAngle) || (phi > maxAngle))
+    {
+        phi = std::clamp(phi, minAngle, maxAngle);
+        // QTR q = QTR::AngleAxisRad(phi, n);
+        decimal halfPhi = phi * decimal(0.5);
+        decimal cosHalfPhi = std::cos(halfPhi);
+        decimal sinHalfPhi = std::sin(halfPhi);
+        Quaternion q(sinHalfPhi * n.x, sinHalfPhi * n.y, sinHalfPhi * n.z, cosHalfPhi);
+
+        Vector3 omega = q * n1;
+        omega = omega.cross(n2);
+
+        phi = omega.length();
+        if (phi > maxCorr)
+        {
+            omega *= maxCorr / phi;
+        }
+
+        applyBodyPairCorrectionXPBD(omega, decimal(0.0), dt, lambda, componentIndexBodyA, componentIndexBodyB);
+        return;
+    }
+
+    if (callback == nullptr)
+    {
+        return;
+    }
+    decimal targetAngle, torque;
+    callback(joint, phi, velocity, targetAngle, torque);
+
+    if (torque == decimal(0.0))
+    {
+        return;
+    }
+
+    decimal angleDelta = phi - targetAngle;
+    decimal compliance = angleDelta / torque;
+
+    phi = targetAngle;
+    // QTR q = QTR::AngleAxisRad(phi, n);
+    decimal halfPhi = phi * decimal(0.5);
+    decimal cosHalfPhi = std::cos(halfPhi);
+    decimal sinHalfPhi = std::sin(halfPhi);
+    Quaternion q(sinHalfPhi * n.x, sinHalfPhi * n.y, sinHalfPhi * n.z, cosHalfPhi);
+
+    Vector3 omega = q * n1;
+    omega = omega.cross(n2);
+
+    phi = omega.length();
+    if (phi > maxCorr)
+    {
+        omega *= maxCorr / phi;
+    }
+
+    applyBodyPairCorrectionXPBD(omega, compliance, dt, lambda, componentIndexBodyA, componentIndexBodyB);
 }
 
 void XPBDProjections::applyBodyPairCorrectionXPBD(const Vector3 & correction, decimal compliance, decimal dt, decimal & lambda, uint32 componentIndexBody1, uint32 componentIndexBody2)

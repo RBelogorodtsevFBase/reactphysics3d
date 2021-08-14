@@ -46,27 +46,26 @@ enum class JointType;
 /**
  * This class represent the component of the ECS with data for the BallAndSocketJoint.
  */
-class BallAndSocketJointComponents : public Components {
-
-    private:
-
-        // -------------------- Attributes -------------------- //
-
+class BallAndSocketJointComponents : public Components 
+{
+private:
         /// Array of joint entities
-        Entity* mJointEntities;
+        Entity * mJointEntities;
 
         /// Array of pointers to the joints
-        BallAndSocketJoint** mJoints;
+        BallAndSocketJoint ** mJoints;
 
-        bool * mLimitSwingXEnabled;
-
-        bool * mLimitSwingYEnabled;
-
-        bool * mLimitTwistEnabled;
+        void ** mUserData;
 
         Quaternion * mTargetLocalInBody1;
 
         Quaternion * mReferenceLocalInBody2;
+
+        void (** mCallbacksX)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
+
+        void (** mCallbacksY)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
+
+        void (** mCallbacksZ)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
 
         Vector3 * mLimitsAnglesMin;
 
@@ -162,7 +161,11 @@ class BallAndSocketJointComponents : public Components {
 
         void setReferenceLocalInBody2(Entity jointEntity, const Quaternion & referenceLocalInBody2);
 
-        void enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist);
+        void setSpringCallbackX(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
+
+        void setSpringCallbackY(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
+
+        void setSpringCallbackZ(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
 
         void setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles);
 
@@ -175,6 +178,10 @@ class BallAndSocketJointComponents : public Components {
         void setDamping(Entity jointEntity, const Vector3 & dampings);
 
         void setSpringTarget(Entity jointEntity, const Vector3 & springTarget);
+
+        void * getUserData(Entity jointEntity) const;
+
+        void setUserData(Entity jointEntity, void * userData);
 
         /// Set the local anchor point of body 1 for a given joint
         void setLocalAnchorPointBody1(Entity jointEntity, const Vector3& localAnchoirPointBody1);
@@ -259,13 +266,22 @@ inline void BallAndSocketJointComponents::setReferenceLocalInBody2(Entity jointE
     mReferenceLocalInBody2[mMapEntityToComponentIndex[jointEntity]] = referenceLocalInBody2;
 }
 
-inline void BallAndSocketJointComponents::enableLimits(Entity jointEntity, bool swingX, bool swingY, bool twist)
+inline void BallAndSocketJointComponents::setSpringCallbackX(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    uint32 index = mMapEntityToComponentIndex[jointEntity];
-    mLimitSwingXEnabled[index] = swingX;
-    mLimitSwingYEnabled[index] = swingY;
-    mLimitTwistEnabled[index] = twist;
+    mCallbacksX[mMapEntityToComponentIndex[jointEntity]] = callback;
+}
+
+inline void BallAndSocketJointComponents::setSpringCallbackY(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mCallbacksY[mMapEntityToComponentIndex[jointEntity]] = callback;
+}
+
+inline void BallAndSocketJointComponents::setSpringCallbackZ(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mCallbacksZ[mMapEntityToComponentIndex[jointEntity]] = callback;
 }
 
 inline void BallAndSocketJointComponents::setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles)
@@ -302,6 +318,18 @@ inline void BallAndSocketJointComponents::setSpringTarget(Entity jointEntity, co
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mSpringTargets[mMapEntityToComponentIndex[jointEntity]] = springTarget;
+}
+
+inline void * BallAndSocketJointComponents::getUserData(Entity jointEntity) const
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    return mUserData[mMapEntityToComponentIndex[jointEntity]];
+}
+
+inline void BallAndSocketJointComponents::setUserData(Entity jointEntity, void * userData)
+{
+    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
+    mUserData[mMapEntityToComponentIndex[jointEntity]] = userData;
 }
 
 // Return the local anchor point of body 1 for a given joint

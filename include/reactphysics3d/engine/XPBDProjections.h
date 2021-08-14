@@ -9,6 +9,7 @@
 namespace reactphysics3d {
 
 class RigidBodyComponents;
+class BallAndSocketJoint;
 
 // Class XPBDProjections
 /**
@@ -57,6 +58,10 @@ class XPBDProjections {
         void applyBodyPairCorrectionVelocityXPBD(const Vector3 & correction, decimal compliance, const Vector3 & r1, const Vector3 & r2, decimal dt, uint32 componentIndexBody1, uint32 componentIndexBody2);
 
         void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal dt, decimal & lambda, decimal maxCorr = PI);
+
+        void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, 
+            void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), BallAndSocketJoint * joint,
+            decimal velocity, decimal dt, decimal & lambda, decimal maxCorr = PI);
 };
 
 }

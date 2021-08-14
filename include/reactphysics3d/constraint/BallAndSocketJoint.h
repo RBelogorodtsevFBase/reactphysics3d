@@ -30,16 +30,17 @@
 #include <reactphysics3d/constraint/Joint.h>
 #include <reactphysics3d/mathematics/mathematics.h>
 
-namespace reactphysics3d {
+namespace reactphysics3d 
+{
 
 // Structure BallAndSocketJointInfo
 /**
  * This structure is used to gather the information needed to create a ball-and-socket
  * joint. This structure will be used to create the actual ball-and-socket joint.
  */
-struct BallAndSocketJointInfo : public JointInfo {
-
-    public :
+struct BallAndSocketJointInfo : public JointInfo 
+{
+public:
 
         // -------------------- Attributes -------------------- //
 
@@ -65,25 +66,16 @@ struct BallAndSocketJointInfo : public JointInfo {
  * between two bodies. This joint has three degrees of freedom. It can be used to
  * create a chain of bodies for instance.
  */
-class BallAndSocketJoint : public Joint {
-
-    private :
-
-        // -------------------- Constants -------------------- //
-
-        // Beta value for the bias factor of position correction
-        static const decimal BETA;
-
-        // -------------------- Attributes -------------------- //
-
+class BallAndSocketJoint : public Joint 
+{
+private:
 
         // -------------------- Methods -------------------- //
 
         /// Return the number of bytes used by the joint
         virtual size_t getSizeInBytes() const override;
 
-
-    public :
+public:
 
         // -------------------- Methods -------------------- //
 
@@ -99,17 +91,24 @@ class BallAndSocketJoint : public Joint {
         /// Set reference orientations: twist, swing x and y angles are measured between targetLocalInBody1 and referenceLocalInBody2 orientations converted to the world coordinate frame
         void setReferenceOrientations(const Quaternion & targetLocalInBody1, const Quaternion & referenceLocalInBody2);
 
-        /// Enable/disable the limits of the joint
-        void enableLimits(bool swingX, bool swingY, bool twist);
-
         /// Set the limits in angles (in radians)
         void setLimits(const Vector3 & minAngles, const Vector3 & maxAngles);
+
+        void setSpringCallbackX(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
+
+        void setSpringCallbackY(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
+
+        void setSpringCallbackZ(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
 
         /// Set joint spring parameters
         void setSpringParams(const Vector3 & stiffnessPositive, const Vector3 & stiffnessNegative, const Vector3 & damping);
 
         /// Set joint spring target
         void setSpringTarget(const Vector3 & angles);
+
+        void * getUserData() const;
+
+        void setUserData(void * userData);
 
         /// Return a string representation
         virtual std::string to_string() const override;
@@ -119,7 +118,8 @@ class BallAndSocketJoint : public Joint {
 };
 
 // Return the number of bytes used by the joint
-inline size_t BallAndSocketJoint::getSizeInBytes() const {
+inline size_t BallAndSocketJoint::getSizeInBytes() const 
+{
     return sizeof(BallAndSocketJoint);
 }
 

@@ -31,13 +31,10 @@
 
 using namespace reactphysics3d;
 
-// Static variables definition
-const decimal BallAndSocketJoint::BETA = decimal(0.2);
-
 // Constructor
 BallAndSocketJoint::BallAndSocketJoint(Entity entity, PhysicsWorld& world, const BallAndSocketJointInfo& jointInfo)
-                   : Joint(entity, world) {
-
+    : Joint(entity, world)
+{
     // Get the transforms of the two bodies
     const Transform& body1Transform = mWorld.mTransformComponents.getTransform(jointInfo.body1->getEntity());
     const Transform& body2Transform = mWorld.mTransformComponents.getTransform(jointInfo.body2->getEntity());
@@ -55,17 +52,31 @@ void BallAndSocketJoint::setReferenceOrientations(const Quaternion & targetLocal
     awakeBodies();
 }
 
-void BallAndSocketJoint::enableLimits(bool swingX, bool swingY, bool twist)
-{
-    mWorld.mBallAndSocketJointsComponents.enableLimits(mEntity, swingX, swingY, twist);
-
-    awakeBodies();
-}
-
 void BallAndSocketJoint::setLimits(const Vector3 & minAngles, const Vector3 & maxAngles)
 {
     mWorld.mBallAndSocketJointsComponents.setLimitsAnglesMin(mEntity, minAngles);
     mWorld.mBallAndSocketJointsComponents.setLimitsAnglesMax(mEntity, maxAngles);
+
+    awakeBodies();
+}
+
+void BallAndSocketJoint::setSpringCallbackX(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+{
+    mWorld.mBallAndSocketJointsComponents.setSpringCallbackX(mEntity, callback);
+
+    awakeBodies();
+}
+
+void BallAndSocketJoint::setSpringCallbackY(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+{
+    mWorld.mBallAndSocketJointsComponents.setSpringCallbackY(mEntity, callback);
+
+    awakeBodies();
+}
+
+void BallAndSocketJoint::setSpringCallbackZ(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+{
+    mWorld.mBallAndSocketJointsComponents.setSpringCallbackZ(mEntity, callback);
 
     awakeBodies();
 }
@@ -86,9 +97,21 @@ void BallAndSocketJoint::setSpringTarget(const Vector3 & angles)
     awakeBodies();
 }
 
-// Return a string representation
-std::string BallAndSocketJoint::to_string() const {
+void BallAndSocketJoint::setUserData(void * userData)
+{
+    mWorld.mBallAndSocketJointsComponents.setUserData(mEntity, userData);
 
+    awakeBodies();
+}
+
+void * BallAndSocketJoint::getUserData() const
+{
+    return mWorld.mBallAndSocketJointsComponents.getUserData(mEntity);
+}
+
+// Return a string representation
+std::string BallAndSocketJoint::to_string() const  // TODO : fix this
+{
     return "BallAndSocketJoint{ localAnchorPointBody1=" + mWorld.mBallAndSocketJointsComponents.getLocalAnchorPointBody1(mEntity).to_string() +
             ", localAnchorPointBody2=" + mWorld.mBallAndSocketJointsComponents.getLocalAnchorPointBody2(mEntity).to_string() + "}";
 }

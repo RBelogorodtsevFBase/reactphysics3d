@@ -91,6 +91,15 @@ struct Quaternion {
         /// Set to the identity quaternion
         void setToIdentity();
 
+        /// Return X axis rotated by this quaternion
+        Vector3 getAxisX() const;
+
+        /// Return Y axis rotated by this quaternion
+        Vector3 getAxisY() const;
+
+        /// Return Z axis rotated by this quaternion
+        Vector3 getAxisZ() const;
+
         /// Return the vector v=(x y z) of the quaternion
         Vector3 getVectorV() const;
 
@@ -224,6 +233,27 @@ inline void Quaternion::setToIdentity() {
     y = 0;
     z = 0;
     w = 1;
+}
+
+inline Vector3 Quaternion::getAxisX() const
+{
+    decimal x2 = x * decimal(2.0);
+    decimal w2 = w * decimal(2.0);
+    return Vector3((w * w2) - decimal(1.0) + x * x2, (z * w2) + y * x2, (-y * w2) + z * x2);
+}
+
+inline Vector3 Quaternion::getAxisY() const
+{
+    decimal y2 = y * decimal(2.0);
+    decimal w2 = w * decimal(2.0);
+    return Vector3((-z * w2) + x * y2, (w * w2) - decimal(1.0) + y * y2, (x * w2) + z * y2);
+}
+
+inline Vector3 Quaternion::getAxisZ() const
+{
+    decimal z2 = z * decimal(2.0);
+    decimal w2 = w * decimal(2.0);
+    return Vector3((y * w2) + x * z2, (-x * w2) + y * z2, (w * w2) - decimal(1.0) + z * z2);
 }
 
 // Return the vector v=(x y z) of the quaternion
