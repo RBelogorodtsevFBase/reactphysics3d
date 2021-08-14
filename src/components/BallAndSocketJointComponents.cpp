@@ -36,12 +36,10 @@ typedef void (*CallbackType)(BallAndSocketJoint *, decimal, decimal, decimal &, 
 
 // Constructor
 BallAndSocketJointComponents::BallAndSocketJointComponents(MemoryAllocator& allocator)
-    : Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint *) + sizeof(Vector3) + 
+    : Components(allocator, sizeof(Entity) + sizeof(BallAndSocketJoint *) + 
         sizeof(Quaternion) + sizeof(Quaternion) +
         sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
         sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector3) +
-        sizeof(Matrix3x3) + sizeof(Matrix3x3) + sizeof(Vector3) + sizeof(Vector3) +
-        sizeof(Matrix3x3) + sizeof(Vector3) +
         sizeof(CallbackType) + sizeof(CallbackType) + sizeof(CallbackType) + sizeof(void *))
 {
     // Allocate memory for the components data
@@ -73,15 +71,8 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate)
     Vector3 * newLimitsAnglesMax = reinterpret_cast<Vector3 *>(newLimitsAnglesMin + nbComponentsToAllocate);
     Vector3 * newDampings = reinterpret_cast<Vector3 *>(newLimitsAnglesMax + nbComponentsToAllocate);
     Vector3 * newLambda = reinterpret_cast<Vector3 *>(newDampings + nbComponentsToAllocate);
-    Vector3* newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newLambda + nbComponentsToAllocate);
-    Vector3* newLocalAnchorPointBody2 = reinterpret_cast<Vector3*>(newLocalAnchorPointBody1 + nbComponentsToAllocate);
-    Vector3* newR1World = reinterpret_cast<Vector3*>(newLocalAnchorPointBody2 + nbComponentsToAllocate);
-    Vector3* newR2World = reinterpret_cast<Vector3*>(newR1World + nbComponentsToAllocate);
-    Matrix3x3* newI1 = reinterpret_cast<Matrix3x3*>(newR2World + nbComponentsToAllocate);
-    Matrix3x3* newI2 = reinterpret_cast<Matrix3x3*>(newI1 + nbComponentsToAllocate);
-    Vector3* newBiasVector = reinterpret_cast<Vector3*>(newI2 + nbComponentsToAllocate);
-    Matrix3x3* newInverseMassMatrix = reinterpret_cast<Matrix3x3*>(newBiasVector + nbComponentsToAllocate);
-    Vector3* newImpulse = reinterpret_cast<Vector3*>(newInverseMassMatrix + nbComponentsToAllocate);
+    Vector3 * newLocalAnchorPointBody1 = reinterpret_cast<Vector3*>(newLambda + nbComponentsToAllocate);
+    Vector3 * newLocalAnchorPointBody2 = reinterpret_cast<Vector3*>(newLocalAnchorPointBody1 + nbComponentsToAllocate);
 
     // If there was already components before
     if (mNbComponents > 0) 
@@ -101,13 +92,6 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate)
         memcpy(newLambda, mLambda, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody1, mLocalAnchorPointBody1, mNbComponents * sizeof(Vector3));
         memcpy(newLocalAnchorPointBody2, mLocalAnchorPointBody2, mNbComponents * sizeof(Vector3));
-        memcpy(newR1World, mR1World, mNbComponents * sizeof(Vector3));
-        memcpy(newR2World, mR2World, mNbComponents * sizeof(Vector3));
-        memcpy(newI1, mI1, mNbComponents * sizeof(Matrix3x3));
-        memcpy(newI2, mI2, mNbComponents * sizeof(Matrix3x3));
-        memcpy(newBiasVector, mBiasVector, mNbComponents * sizeof(Vector3));
-        memcpy(newInverseMassMatrix, mInverseMassMatrix, mNbComponents * sizeof(Matrix3x3));
-        memcpy(newImpulse, mImpulse, mNbComponents * sizeof(Vector3));
 
         // Deallocate previous memory
         mMemoryAllocator.release(mBuffer, mNbAllocatedComponents * mComponentDataSize);
@@ -129,13 +113,6 @@ void BallAndSocketJointComponents::allocate(uint32 nbComponentsToAllocate)
     mLambda = newLambda;
     mLocalAnchorPointBody1 = newLocalAnchorPointBody1;
     mLocalAnchorPointBody2 = newLocalAnchorPointBody2;
-    mR1World = newR1World;
-    mR2World = newR2World;
-    mI1 = newI1;
-    mI2 = newI2;
-    mBiasVector = newBiasVector;
-    mInverseMassMatrix = newInverseMassMatrix;
-    mImpulse = newImpulse;
 }
 
 // Add a component
@@ -159,13 +136,6 @@ void BallAndSocketJointComponents::addComponent(Entity jointEntity, bool isSleep
     new (mLambda + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody1 + index) Vector3(0, 0, 0);
     new (mLocalAnchorPointBody2 + index) Vector3(0, 0, 0);
-    new (mR1World + index) Vector3(0, 0, 0);
-    new (mR2World + index) Vector3(0, 0, 0);
-    new (mI1 + index) Matrix3x3();
-    new (mI2 + index) Matrix3x3();
-    new (mBiasVector + index) Vector3(0, 0, 0);
-    new (mInverseMassMatrix + index) Matrix3x3();
-    new (mImpulse + index) Vector3(0, 0, 0);
 
     // Map the entity with the new component lookup index
     mMapEntityToComponentIndex.add(Pair<Entity, uint32>(jointEntity, index));
@@ -197,13 +167,6 @@ void BallAndSocketJointComponents::moveComponentToIndex(uint32 srcIndex, uint32 
     new (mLambda + destIndex) Vector3(mLambda[srcIndex]);
     new (mLocalAnchorPointBody1 + destIndex) Vector3(mLocalAnchorPointBody1[srcIndex]);
     new (mLocalAnchorPointBody2 + destIndex) Vector3(mLocalAnchorPointBody2[srcIndex]);
-    new (mR1World + destIndex) Vector3(mR1World[srcIndex]);
-    new (mR2World + destIndex) Vector3(mR2World[srcIndex]);
-    new (mI1 + destIndex) Matrix3x3(mI1[srcIndex]);
-    new (mI2 + destIndex) Matrix3x3(mI2[srcIndex]);
-    new (mBiasVector + destIndex) Vector3(mBiasVector[srcIndex]);
-    new (mInverseMassMatrix + destIndex) Matrix3x3(mInverseMassMatrix[srcIndex]);
-    new (mImpulse + destIndex) Vector3(mImpulse[srcIndex]);
 
     // Destroy the source component
     destroyComponent(srcIndex);
@@ -234,13 +197,6 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     Vector3 lambda1(mLambda[index1]);
     Vector3 localAnchorPointBody1(mLocalAnchorPointBody1[index1]);
     Vector3 localAnchorPointBody2(mLocalAnchorPointBody2[index1]);
-    Vector3 r1World1(mR1World[index1]);
-    Vector3 r2World1(mR2World[index1]);
-    Matrix3x3 i11(mI1[index1]);
-    Matrix3x3 i21(mI2[index1]);
-    Vector3 biasVector1(mBiasVector[index1]);
-    Matrix3x3 inverseMassMatrix1(mInverseMassMatrix[index1]);
-    Vector3 impulse1(mImpulse[index1]);
 
     // Destroy component 1
     destroyComponent(index1);
@@ -262,13 +218,6 @@ void BallAndSocketJointComponents::swapComponents(uint32 index1, uint32 index2) 
     new (mLambda + index2) Vector3(lambda1);
     new (mLocalAnchorPointBody1 + index2) Vector3(localAnchorPointBody1);
     new (mLocalAnchorPointBody2 + index2) Vector3(localAnchorPointBody2);
-    new (mR1World + index2) Vector3(r1World1);
-    new (mR2World + index2) Vector3(r2World1);
-    new (mI1 + index2) Matrix3x3(i11);
-    new (mI2 + index2) Matrix3x3(i21);
-    new (mBiasVector + index2) Vector3(biasVector1);
-    new (mInverseMassMatrix + index2) Matrix3x3(inverseMassMatrix1);
-    new (mImpulse + index2) Vector3(impulse1);
 
     // Update the entity to component index mapping
     mMapEntityToComponentIndex.add(Pair<Entity, uint32>(jointEntity1, index2));
@@ -301,11 +250,4 @@ void BallAndSocketJointComponents::destroyComponent(uint32 index)
     mLambda[index].~Vector3();
     mLocalAnchorPointBody1[index].~Vector3();
     mLocalAnchorPointBody2[index].~Vector3();
-    mR1World[index].~Vector3();
-    mR2World[index].~Vector3();
-    mI1[index].~Matrix3x3();
-    mI2[index].~Matrix3x3();
-    mBiasVector[index].~Vector3();
-    mInverseMassMatrix[index].~Matrix3x3();
-    mImpulse[index].~Vector3();
 }

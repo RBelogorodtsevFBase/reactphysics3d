@@ -163,7 +163,7 @@ void SolveBallAndSocketJointSystem::solveVelocityXPBD(decimal timeSubStep)
     // For each joint component
     for (uint32 i = 0; i < mBallAndSocketJointComponents.getNbEnabledComponents(); i++)
     {
-        decimal dampingRotation = 550.0f;
+        decimal dampingRotation = 5.0f;
         if (dampingRotation > 0.0)
         {
             const Entity jointEntity = mBallAndSocketJointComponents.mJointEntities[i];
