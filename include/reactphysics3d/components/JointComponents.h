@@ -53,22 +53,19 @@ class JointComponents : public Components {
         // -------------------- Attributes -------------------- //
 
         /// Array of joint entities
-        Entity* mJointEntities;
+        Entity * mJointEntities;
 
         /// Array of body entities of the first bodies of the joints
-        Entity* mBody1Entities;
+        Entity * mBody1Entities;
 
         /// Array of body entities of the first bodies of the joints
-        Entity* mBody2Entities;
+        Entity * mBody2Entities;
 
         /// Array with pointers to the joints
-        Joint** mJoints;
+        Joint ** mJoints;
 
         /// Array of type of the joints
-        JointType* mTypes;
-
-        /// Array of position correction techniques used for the joints
-        JointsPositionCorrectionTechnique* mPositionCorrectionTechniques;
+        JointType * mTypes;
 
         /// Array of boolean values to know if the two bodies of the constraint are allowed to collide with each other
         bool* mIsCollisionEnabled;
@@ -99,28 +96,29 @@ class JointComponents : public Components {
             const Entity body2Entity;
             Joint* joint;
             JointType jointType;
-            JointsPositionCorrectionTechnique positionCorrectionTechnique;
             bool isCollisionEnabled;
 
             /// Constructor
-            JointComponent(Entity body1Entity, Entity body2Entity, Joint* joint, JointType jointType,
-                           JointsPositionCorrectionTechnique positionCorrectionTechnique, bool isCollisionEnabled)
-                : body1Entity(body1Entity), body2Entity(body2Entity), joint(joint), jointType(jointType),
-                  positionCorrectionTechnique(positionCorrectionTechnique), isCollisionEnabled(isCollisionEnabled)  {
-
+            JointComponent(Entity body1Entity, Entity body2Entity, Joint* joint, JointType jointType, bool isCollisionEnabled) 
+                : body1Entity(body1Entity)
+                , body2Entity(body2Entity)
+                , joint(joint)
+                , jointType(jointType)
+                , isCollisionEnabled(isCollisionEnabled)
+            {
             }
         };
 
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        JointComponents(MemoryAllocator& allocator);
+        JointComponents(MemoryAllocator & allocator);
 
         /// Destructor
         virtual ~JointComponents() override = default;
 
         /// Add a component
-        void addComponent(Entity jointEntity, bool isSleeping, const JointComponent& component);
+        void addComponent(Entity jointEntity, bool isSleeping, const JointComponent & component);
 
         /// Return the entity of the first body of a joint
         Entity getBody1Entity(Entity jointEntity) const;
@@ -133,12 +131,6 @@ class JointComponents : public Components {
 
         /// Return the type of a joint
         JointType getType(Entity jointEntity) const;
-
-        /// Return the position correction technique of a joint
-        JointsPositionCorrectionTechnique getPositionCorrectionTechnique(Entity jointEntity) const;
-
-        /// Set the position correction technique of a joint
-        void getPositionCorrectionTechnique(Entity jointEntity, JointsPositionCorrectionTechnique positionCorrectionTechnique);
 
         /// Return true if the collision is enabled between the two bodies of a joint
         bool getIsCollisionEnabled(Entity jointEntity) const;
@@ -160,61 +152,57 @@ class JointComponents : public Components {
 };
 
 // Return the entity of the first body of a joint
-inline Entity JointComponents::getBody1Entity(Entity jointEntity) const {
+inline Entity JointComponents::getBody1Entity(Entity jointEntity) const 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mBody1Entities[mMapEntityToComponentIndex[jointEntity]];
 }
 
 // Return the entity of the second body of a joint
-inline Entity JointComponents::getBody2Entity(Entity jointEntity) const {
+inline Entity JointComponents::getBody2Entity(Entity jointEntity) const 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mBody2Entities[mMapEntityToComponentIndex[jointEntity]];
 }
 
 // Return a pointer to the joint
-inline Joint* JointComponents::getJoint(Entity jointEntity) const {
+inline Joint * JointComponents::getJoint(Entity jointEntity) const 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mJoints[mMapEntityToComponentIndex[jointEntity]];
 }
 
 // Return the type of a joint
-inline JointType JointComponents::getType(Entity jointEntity) const {
+inline JointType JointComponents::getType(Entity jointEntity) const 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mTypes[mMapEntityToComponentIndex[jointEntity]];
 }
 
-// Return the position correction technique of a joint
-inline JointsPositionCorrectionTechnique JointComponents::getPositionCorrectionTechnique(Entity jointEntity) const {
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    return mPositionCorrectionTechniques[mMapEntityToComponentIndex[jointEntity]];
-}
-
-// Set the position correction technique of a joint
-inline void JointComponents::getPositionCorrectionTechnique(Entity jointEntity, JointsPositionCorrectionTechnique positionCorrectionTechnique) {
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mPositionCorrectionTechniques[mMapEntityToComponentIndex[jointEntity]] = positionCorrectionTechnique;
-}
-
 // Return true if the collision is enabled between the two bodies of a joint
-inline bool JointComponents::getIsCollisionEnabled(Entity jointEntity) const {
+inline bool JointComponents::getIsCollisionEnabled(Entity jointEntity) const 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mIsCollisionEnabled[mMapEntityToComponentIndex[jointEntity]];
 }
 
 // Set whether the collision is enabled between the two bodies of a joint
-inline void JointComponents::setIsCollisionEnabled(Entity jointEntity, bool isCollisionEnabled) {
+inline void JointComponents::setIsCollisionEnabled(Entity jointEntity, bool isCollisionEnabled) 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mIsCollisionEnabled[mMapEntityToComponentIndex[jointEntity]] = isCollisionEnabled;
 }
 
 // Return true if the joint has already been added into an island during island creation
-inline bool JointComponents::getIsAlreadyInIsland(Entity jointEntity) const {
+inline bool JointComponents::getIsAlreadyInIsland(Entity jointEntity) const 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     return mIsAlreadyInIsland[mMapEntityToComponentIndex[jointEntity]];
 }
 
 // Set to true if the joint has already been added into an island during island creation
-inline void JointComponents::setIsAlreadyInIsland(Entity jointEntity, bool isAlreadyInIsland) {
+inline void JointComponents::setIsAlreadyInIsland(Entity jointEntity, bool isAlreadyInIsland) 
+{
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
     mIsAlreadyInIsland[mMapEntityToComponentIndex[jointEntity]] = isAlreadyInIsland;
 }

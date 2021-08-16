@@ -84,14 +84,14 @@ class PhysicsWorld {
             /// Distance threshold for two contact points for a valid persistent contact (in meters)
             decimal persistentContactDistanceThreshold;
 
-            /// Default friction coefficient for a rigid body
-            decimal defaultFrictionCoefficient;
+            /// Default static friction coefficient for a rigid body
+            decimal defaultFrictionStatic;
 
-            /// Default bounciness factor for a rigid body
-            decimal defaultBounciness;
+            /// Default dynamic friction coefficient for a rigid body
+            decimal defaultFrictionDynamic;
 
-            /// Default rolling resistance
-            decimal defaultRollingRestistance;
+            /// Default coefficient of restitution for a rigid body
+            decimal defaultRestitution;
 
             /// True if the sleeping technique is enabled
             bool isSleepingEnabled;
@@ -124,14 +124,14 @@ class PhysicsWorld {
             /// than the value bellow, the manifold are considered to be similar.
             decimal cosAngleSimilarContactManifold;
 
-            WorldSettings() {
-
+            WorldSettings()
+            {
                 worldName = "";
                 gravity = Vector3(0, decimal(-9.81), 0);
-                persistentContactDistanceThreshold = decimal(0.03);
-                defaultFrictionCoefficient = decimal(0.3);
-                defaultBounciness = decimal(0.5);
-                defaultRollingRestistance = decimal(0.0);
+                persistentContactDistanceThreshold = decimal(0.003);
+                defaultFrictionStatic = decimal(0.6);
+                defaultFrictionDynamic = decimal(0.5);
+                defaultRestitution = decimal(0.1);
                 isSleepingEnabled = true;
                 defaultXPBDNbSubsteps = 20,
                 defaultVelocitySolverNbIterations = 10;
@@ -147,16 +147,16 @@ class PhysicsWorld {
             ~WorldSettings() = default;
 
             /// Return a string with the world settings
-            std::string to_string() const {
-
+            std::string to_string() const 
+            {
                 std::stringstream ss;
 
                 ss << "worldName=" << worldName << std::endl;
                 ss << "gravity=" << gravity.to_string() << std::endl;
                 ss << "persistentContactDistanceThreshold=" << persistentContactDistanceThreshold << std::endl;
-                ss << "defaultFrictionCoefficient=" << defaultFrictionCoefficient << std::endl;
-                ss << "defaultBounciness=" << defaultBounciness << std::endl;
-                ss << "defaultRollingRestistance=" << defaultRollingRestistance << std::endl;
+                ss << "defaultFrictionStatic=" << defaultFrictionStatic << std::endl;
+                ss << "defaultFrictionDynamic=" << defaultFrictionDynamic << std::endl;
+                ss << "defaultRestitution=" << defaultRestitution << std::endl;
                 ss << "isSleepingEnabled=" << isSleepingEnabled << std::endl;
                 ss << "defaultXPBDNbSubsteps=" << defaultXPBDNbSubsteps << std::endl;
                 ss << "defaultVelocitySolverNbIterations=" << defaultVelocitySolverNbIterations << std::endl;
@@ -257,12 +257,6 @@ class PhysicsWorld {
 
         /// Number of XPBD substeps per update
         uint mXPBDNbSubsteps;
-
-        /// Number of iterations for the velocity solver of the Sequential Impulses technique
-        uint mNbVelocitySolverIterations;
-
-        /// Number of iterations for the position solver of the Sequential Impulses technique
-        uint mNbPositionSolverIterations;
 
         /// True if the spleeping technique for inactive bodies is enabled
         bool mIsSleepingEnabled;
@@ -370,21 +364,6 @@ class PhysicsWorld {
 
         /// Set the number of XPBD substeps per update
         void setXPBDNbSubsteps(uint nbSteps);
-
-        /// Get the number of iterations for the velocity constraint solver
-        uint getNbIterationsVelocitySolver() const;
-
-        /// Set the number of iterations for the velocity constraint solver
-        void setNbIterationsVelocitySolver(uint nbIterations);
-
-        /// Get the number of iterations for the position constraint solver
-        uint getNbIterationsPositionSolver() const;
-
-        /// Set the number of iterations for the position constraint solver
-        void setNbIterationsPositionSolver(uint nbIterations);
-
-        /// Set the position correction technique used for joints
-        void setJointsPositionCorrectionTechnique(JointsPositionCorrectionTechnique technique);
 
         /// Create a rigid body into the physics world.
         RigidBody* createRigidBody(const Transform& transform);
@@ -614,41 +593,12 @@ inline uint PhysicsWorld::getXPBDNbSubsteps() const
     return mXPBDNbSubsteps;
 }
 
-// Get the number of iterations for the velocity constraint solver
-/**
- * @return The number of iterations of the velocity constraint solver
- */
-inline uint PhysicsWorld::getNbIterationsVelocitySolver() const {
-    return mNbVelocitySolverIterations;
-}
-
-// Get the number of iterations for the position constraint solver
-/**
- * @return The number of iterations of the position constraint solver
- */
-inline uint PhysicsWorld::getNbIterationsPositionSolver() const {
-    return mNbPositionSolverIterations;
-}
-
-// Set the position correction technique used for joints
-/**
- * @param technique Technique used for the joins position correction (Baumgarte or Non Linear Gauss Seidel)
- */
-inline void PhysicsWorld::setJointsPositionCorrectionTechnique(
-                              JointsPositionCorrectionTechnique technique) {
-    if (technique == JointsPositionCorrectionTechnique::BAUMGARTE_JOINTS) {
-        mConstraintSolverSystem.setIsNonLinearGaussSeidelPositionCorrectionActive(false);
-    }
-    else {
-        mConstraintSolverSystem.setIsNonLinearGaussSeidelPositionCorrectionActive(true);
-    }
-}
-
 // Return the gravity vector of the world
 /**
  * @return The current gravity vector (in meter per seconds squared)
  */
-inline Vector3 PhysicsWorld::getGravity() const {
+inline Vector3 PhysicsWorld::getGravity() const 
+{
     return mConfig.gravity;
 }
 
@@ -656,7 +606,8 @@ inline Vector3 PhysicsWorld::getGravity() const {
 /**
  * @return True if the gravity is enabled in the world
  */
-inline bool PhysicsWorld::isGravityEnabled() const {
+inline bool PhysicsWorld::isGravityEnabled() const 
+{
     return mIsGravityEnabled;
 }
 
@@ -664,7 +615,8 @@ inline bool PhysicsWorld::isGravityEnabled() const {
 /**
  * @return True if the sleeping technique is enabled and false otherwise
  */
-inline bool PhysicsWorld::isSleepingEnabled() const {
+inline bool PhysicsWorld::isSleepingEnabled() const 
+{
     return mIsSleepingEnabled;
 }
 

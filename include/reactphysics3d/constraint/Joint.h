@@ -46,12 +46,9 @@ class RigidBody;
 /**
  * This structure is used to gather the information needed to create a joint.
  */
-struct JointInfo {
-
-    public :
-
-        // -------------------- Attributes -------------------- //
-
+struct JointInfo 
+{
+public:
         /// First rigid body of the joint
         RigidBody* body1;
 
@@ -61,26 +58,25 @@ struct JointInfo {
         /// Type of the joint
         JointType type;
 
-        /// Position correction technique used for the constraint (used for joints).
-        /// By default, the BAUMGARTE technique is used
-        JointsPositionCorrectionTechnique positionCorrectionTechnique;
-
         /// True if the two bodies of the joint are allowed to collide with each other
         bool isCollisionEnabled;
 
         /// Constructor
-        JointInfo(JointType constraintType)
-                      : body1(nullptr), body2(nullptr), type(constraintType),
-                        positionCorrectionTechnique(JointsPositionCorrectionTechnique::NON_LINEAR_GAUSS_SEIDEL),
-                        isCollisionEnabled(true) {
-
+        JointInfo(JointType constraintType) 
+            : body1(nullptr)
+            , body2(nullptr)
+            , type(constraintType)
+            , isCollisionEnabled(true) 
+        {
         }
 
         /// Constructor
-        JointInfo(RigidBody* rigidBody1, RigidBody* rigidBody2, JointType constraintType)
-                      : body1(rigidBody1), body2(rigidBody2), type(constraintType),
-                        positionCorrectionTechnique(JointsPositionCorrectionTechnique::NON_LINEAR_GAUSS_SEIDEL),
-                        isCollisionEnabled(true) {
+        JointInfo(RigidBody * rigidBody1, RigidBody * rigidBody2, JointType constraintType) 
+            : body1(rigidBody1)
+            , body2(rigidBody2)
+            , type(constraintType)
+            , isCollisionEnabled(true) 
+        {
         }
 
         /// Destructor
@@ -93,11 +89,7 @@ struct JointInfo {
  * This abstract class represents a joint between two bodies.
  */
 class Joint {
-
-    protected :
-
-        // -------------------- Attributes -------------------- //
-
+protected:
         /// Entity ID of the joint
         Entity mEntity;
 
@@ -111,22 +103,21 @@ class Joint {
 
         /// Awake the two bodies of the joint
         void awakeBodies() const;
-
-    public :
+public:
 
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        Joint(Entity entity, PhysicsWorld& world);
+        Joint(Entity entity, PhysicsWorld & world);
 
         /// Destructor
         virtual ~Joint() = default;
 
         /// Deleted copy-constructor
-        Joint(const Joint& constraint) = delete;
+        Joint(const Joint & constraint) = delete;
 
         /// Deleted assignment operator
-        Joint& operator=(const Joint& constraint) = delete;
+        Joint& operator=(const Joint & constraint) = delete;
 
         /// Return the reference to the body 1
         RigidBody* getBody1() const;
@@ -157,7 +148,8 @@ class Joint {
 /**
  * @return The entity of the joint
  */
-inline Entity Joint::getEntity() const {
+inline Entity Joint::getEntity() const 
+{
     return mEntity;
 }
 

@@ -38,20 +38,18 @@ namespace reactphysics3d {
  * the dynamics simulation like the friction coefficient or the bounciness of the rigid
  * body.
  */
-class Material {
+class Material 
+{
+private:
 
-    private :
+        /// Static friction coefficient
+        decimal mFrictionStatic;
 
-        // -------------------- Attributes -------------------- //
+        /// Dynamic friction coefficient
+        decimal mFrictionDynamic;
 
-        /// Friction coefficient (positive value)
-        decimal mFrictionCoefficient;
-
-        /// Rolling resistance factor (positive value)
-        decimal mRollingResistance;
-
-        /// Bounciness during collisions (between 0 and 1) where 1 is for a very bouncy body
-        decimal mBounciness;
+        /// Coefficient of restitution
+        decimal mRestitution;
 
         /// Density of mass used to compute the mass of the collider
         decimal mMassDensity;
@@ -59,36 +57,32 @@ class Material {
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        Material(decimal frictionCoefficient, decimal rollingResistance, decimal bounciness,
-                 decimal massDensity = decimal(1.0));
+        Material(decimal frictionStatic, decimal frictionDynamic, decimal restitution, decimal massDensity = decimal(1.0));
 
         /// Copy-constructor
-        Material(const Material& material);
+        Material(const Material & material);
 
         /// Destructor
         ~Material() = default;
 
-    public :
+public:
+        /// Return the restitution
+        decimal getRestitution() const;
 
-        // -------------------- Methods -------------------- //
+        /// Set the restitution.
+        void setRestitution(decimal restitution);
 
-        /// Return the bounciness
-        decimal getBounciness() const;
+        /// Return the static friction coefficient
+        decimal getFrictionStatic() const;
 
-        /// Set the bounciness.
-        void setBounciness(decimal bounciness);
+        /// Set the static friction coefficient.
+        void setFrictionStatic(decimal frictionStatic);
 
-        /// Return the friction coefficient
-        decimal getFrictionCoefficient() const;
+        /// Return the dynamic friction coefficient
+        decimal getFrictionDynamic() const;
 
-        /// Set the friction coefficient.
-        void setFrictionCoefficient(decimal frictionCoefficient);
-
-        /// Return the rolling resistance factor
-        decimal getRollingResistance() const;
-
-        /// Set the rolling resistance factor
-        void setRollingResistance(decimal rollingResistance);
+        /// Set the dynamic friction coefficient.
+        void setFrictionDynamic(decimal frictionDynamic);
 
         /// Return the mass density of the collider
         decimal getMassDensity() const;
@@ -100,7 +94,7 @@ class Material {
         std::string to_string() const;
 
         /// Overloaded assignment operator
-        Material& operator=(const Material& material);
+        Material & operator=(const Material & material);
 
         // ---------- Friendship ---------- //
 
@@ -111,63 +105,64 @@ class Material {
 /**
  * @return Bounciness factor (between 0 and 1) where 1 is very bouncy
  */
-inline decimal Material::getBounciness() const {
-    return mBounciness;
+inline decimal Material::getRestitution() const 
+{
+    return mRestitution;
 }
 
 // Set the bounciness.
-/// The bounciness should be a value between 0 and 1. The value 1 is used for a
-/// very bouncy body and zero is used for a body that is not bouncy at all.
 /**
- * @param bounciness Bounciness factor (between 0 and 1) where 1 is very bouncy
+ * @param restitution Coefficient of Restitution
  */
-inline void Material::setBounciness(decimal bounciness) {
-    assert(bounciness >= decimal(0.0) && bounciness <= decimal(1.0));
-    mBounciness = bounciness;
+inline void Material::setRestitution(decimal restitution) 
+{
+    assert(restitution >= decimal(0.0));
+    mRestitution = restitution;
 }
 
-// Return the friction coefficient
+// Return the static friction coefficient
 /**
- * @return Friction coefficient (positive value)
+ * @return Static friction coefficient
  */
-inline decimal Material::getFrictionCoefficient() const {
-    return mFrictionCoefficient;
+inline decimal Material::getFrictionStatic() const
+{
+    return mFrictionStatic;
 }
 
-// Set the friction coefficient.
-/// The friction coefficient has to be a positive value. The value zero is used for no
-/// friction at all.
+// Set the static friction coefficient.
+/// The static friction coefficient has to be a positive value
 /**
- * @param frictionCoefficient Friction coefficient (positive value)
+ * @param frictionStatic Friction coefficient (positive value)
  */
-inline void Material::setFrictionCoefficient(decimal frictionCoefficient) {
-    assert(frictionCoefficient >= decimal(0.0));
-    mFrictionCoefficient = frictionCoefficient;
+inline void Material::setFrictionStatic(decimal frictionStatic)
+{
+    assert(frictionStatic >= decimal(0.0));
+    mFrictionStatic = frictionStatic;
 }
 
-// Return the rolling resistance factor. If this value is larger than zero,
-// it will be used to slow down the body when it is rolling
-// against another body.
+// Return the dynamic friction coefficient
 /**
- * @return The rolling resistance factor (positive value)
+ * @return Dynamic friction coefficient
  */
-inline decimal Material::getRollingResistance() const {
-    return mRollingResistance;
+inline decimal Material::getFrictionDynamic() const
+{
+    return mFrictionDynamic;
 }
 
-// Set the rolling resistance factor. If this value is larger than zero,
-// it will be used to slow down the body when it is rolling
-// against another body.
+// Set the dynamic friction coefficient.
+/// The dynamic friction coefficient has to be a positive value
 /**
- * @param rollingResistance The rolling resistance factor
+ * @param frictionDynamic Friction coefficient
  */
-inline void Material::setRollingResistance(decimal rollingResistance) {
-    assert(rollingResistance >= 0);
-    mRollingResistance = rollingResistance;
+inline void Material::setFrictionDynamic(decimal frictionDynamic)
+{
+    assert(frictionDynamic >= decimal(0.0));
+    mFrictionDynamic = frictionDynamic;
 }
 
 // Return the mass density of the collider
-inline decimal Material::getMassDensity() const {
+inline decimal Material::getMassDensity() const 
+{
    return mMassDensity;
 }
 
@@ -175,30 +170,32 @@ inline decimal Material::getMassDensity() const {
 /**
  * @param massDensity The mass density of the collider
  */
-inline void Material::setMassDensity(decimal massDensity) {
+inline void Material::setMassDensity(decimal massDensity) 
+{
    mMassDensity = massDensity;
 }
 
 // Return a string representation for the material
-inline std::string Material::to_string() const {
-
+inline std::string Material::to_string() const 
+{
     std::stringstream ss;
 
-    ss << "frictionCoefficient=" << mFrictionCoefficient << std::endl;
-    ss << "rollingResistance=" << mRollingResistance << std::endl;
-    ss << "bounciness=" << mBounciness << std::endl;
+    ss << "frictionStatic=" << mFrictionStatic << std::endl;
+    ss << "frictionDynamic=" << mFrictionDynamic << std::endl;
+    ss << "restitution=" << mRestitution << std::endl;
 
     return ss.str();
 }
 
 // Overloaded assignment operator
-inline Material& Material::operator=(const Material& material) {
-
+inline Material & Material::operator=(const Material & material)
+{
     // Check for self-assignment
-    if (this != &material) {
-        mFrictionCoefficient = material.mFrictionCoefficient;
-        mBounciness = material.mBounciness;
-        mRollingResistance = material.mRollingResistance;
+    if (this != &material)
+    {
+        mFrictionStatic = material.mFrictionStatic;
+        mFrictionDynamic = material.mFrictionDynamic;
+        mRestitution = material.mRestitution;
     }
 
     // Return this material

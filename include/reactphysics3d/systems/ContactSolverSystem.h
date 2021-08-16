@@ -163,7 +163,7 @@ private:
         struct ContactManifoldSolver 
         {
             /// Pointer to the external contact manifold
-            ContactManifold* externalContactManifold;
+            ContactManifold * externalContactManifold;
 
             /// Index of body 1 in the dynamics components arrays
             uint32 rigidBodyComponentIndexBody1;
@@ -171,8 +171,14 @@ private:
             /// Index of body 2 in the dynamics components arrays
             uint32 rigidBodyComponentIndexBody2;
 
-            /// Mix friction coefficient for the two bodies
-            decimal frictionCoefficient;
+            /// Mix static friction coefficient for the two bodies
+            decimal frictionStatic;
+
+            /// Mix dynamic friction coefficient for the two bodies
+            decimal frictionDynamic;
+
+            /// Mix coefficient of restitution for the two bodies
+            decimal restitution;
 
             /// Average normal vector of the contact manifold
             Vector3 normal;
@@ -232,13 +238,13 @@ private:
         // -------------------- Methods -------------------- //
 
         /// Compute the collision restitution factor from the restitution factor of each collider
-        decimal computeMixedRestitutionFactor(Collider* collider1, Collider* collider2) const;
+        decimal computeMixedRestitution(Collider * collider1, Collider * collider2) const;
 
-        /// Compute the mixed friction coefficient from the friction coefficient of each collider
-        decimal computeMixedFrictionCoefficient(Collider* collider1, Collider* collider2) const;
+        /// Compute the mixed static friction coefficient from the static friction coefficient of each collider
+        decimal computeMixedFrictionStatic(Collider * collider1, Collider * collider2) const;
 
-        /// Compute th mixed rolling resistance factor between two colliders
-        decimal computeMixedRollingResistance(Collider* collider1, Collider* collider2) const;
+        /// Compute the mixed dynamic friction coefficient from the dynamic friction coefficient of each collider
+        decimal computeMixedFrictionDynamic(Collider * collider1, Collider * collider2) const;
 
    public:
 

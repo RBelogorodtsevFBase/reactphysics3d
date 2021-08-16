@@ -66,13 +66,6 @@ using uint64 = std::uint64_t;
 struct Entity;
 using bodypair = Pair<Entity, Entity>;
 
-// ------------------- Enumerations ------------------- //
-
-/// Position correction technique used in the constraint solver (for joints).
-/// BAUMGARTE_JOINTS : Faster but can be innacurate in some situations.
-/// NON_LINEAR_GAUSS_SEIDEL : Slower but more precise. This is the option used by default.
-enum class JointsPositionCorrectionTechnique {BAUMGARTE_JOINTS, NON_LINEAR_GAUSS_SEIDEL};
-
 // ------------------- Constants ------------------- //
 
 /// Smallest decimal value (negative)

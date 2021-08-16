@@ -33,46 +33,43 @@ using namespace reactphysics3d;
 
 // Constructor
 JointComponents::JointComponents(MemoryAllocator& allocator)
-                    :Components(allocator, sizeof(Entity) + sizeof(Entity) + sizeof(Entity) + sizeof(Joint*) +
-                                sizeof(JointType) + sizeof(JointsPositionCorrectionTechnique) + sizeof(bool) +
-                                sizeof(bool)) {
-
+                    :Components(allocator, sizeof(Entity) + sizeof(Entity) + sizeof(Entity) + sizeof(Joint *) +
+                                sizeof(JointType) + sizeof(bool) + sizeof(bool))
+{
     // Allocate memory for the components data
     allocate(INIT_NB_ALLOCATED_COMPONENTS);
 }
 
 // Allocate memory for a given number of components
-void JointComponents::allocate(uint32 nbComponentsToAllocate) {
-
+void JointComponents::allocate(uint32 nbComponentsToAllocate)
+{
     assert(nbComponentsToAllocate > mNbAllocatedComponents);
 
     // Size for the data of a single component (in bytes)
     const size_t totalSizeBytes = nbComponentsToAllocate * mComponentDataSize;
 
     // Allocate memory
-    void* newBuffer = mMemoryAllocator.allocate(totalSizeBytes);
+    void * newBuffer = mMemoryAllocator.allocate(totalSizeBytes);
     assert(newBuffer != nullptr);
 
     // New pointers to components data
-    Entity* newJointsEntities = static_cast<Entity*>(newBuffer);
-    Entity* newBody1Entities = reinterpret_cast<Entity*>(newJointsEntities + nbComponentsToAllocate);
-    Entity* newBody2Entities = reinterpret_cast<Entity*>(newBody1Entities + nbComponentsToAllocate);
-    Joint** newJoints = reinterpret_cast<Joint**>(newBody2Entities + nbComponentsToAllocate);
-    JointType* newTypes = reinterpret_cast<JointType*>(newJoints + nbComponentsToAllocate);
-    JointsPositionCorrectionTechnique* newPositionCorrectionTechniques = reinterpret_cast<JointsPositionCorrectionTechnique*>(newTypes + nbComponentsToAllocate);
-    bool* newIsCollisionEnabled = reinterpret_cast<bool*>(newPositionCorrectionTechniques + nbComponentsToAllocate);
+    Entity * newJointsEntities = static_cast<Entity*>(newBuffer);
+    Entity * newBody1Entities = reinterpret_cast<Entity*>(newJointsEntities + nbComponentsToAllocate);
+    Entity * newBody2Entities = reinterpret_cast<Entity*>(newBody1Entities + nbComponentsToAllocate);
+    Joint ** newJoints = reinterpret_cast<Joint**>(newBody2Entities + nbComponentsToAllocate);
+    JointType * newTypes = reinterpret_cast<JointType*>(newJoints + nbComponentsToAllocate);
+    bool* newIsCollisionEnabled = reinterpret_cast<bool*>(newTypes + nbComponentsToAllocate);
     bool* newIsAlreadyInIsland = reinterpret_cast<bool*>(newIsCollisionEnabled + nbComponentsToAllocate);
 
     // If there was already components before
-    if (mNbComponents > 0) {
-
+    if (mNbComponents > 0)
+    {
         // Copy component data from the previous buffer to the new one
         memcpy(newJointsEntities, mJointEntities, mNbComponents * sizeof(Entity));
         memcpy(newBody1Entities, mBody1Entities, mNbComponents * sizeof(Entity));
         memcpy(newBody2Entities, mBody2Entities, mNbComponents * sizeof(Entity));
         memcpy(newJoints, mJoints, mNbComponents * sizeof(Joint*));
         memcpy(newTypes, mTypes, mNbComponents * sizeof(JointType));
-        memcpy(newPositionCorrectionTechniques, mPositionCorrectionTechniques, mNbComponents * sizeof(JointsPositionCorrectionTechnique));
         memcpy(newIsCollisionEnabled, mIsCollisionEnabled, mNbComponents * sizeof(bool));
         memcpy(newIsAlreadyInIsland, mIsAlreadyInIsland, mNbComponents * sizeof(bool));
 
@@ -87,14 +84,13 @@ void JointComponents::allocate(uint32 nbComponentsToAllocate) {
     mBody2Entities = newBody2Entities;
     mJoints = newJoints;
     mTypes = newTypes;
-    mPositionCorrectionTechniques = newPositionCorrectionTechniques;
     mIsCollisionEnabled = newIsCollisionEnabled;
     mIsAlreadyInIsland = newIsAlreadyInIsland;
 }
 
 // Add a component
-void JointComponents::addComponent(Entity jointEntity, bool isSleeping, const JointComponent& component) {
-
+void JointComponents::addComponent(Entity jointEntity, bool isSleeping, const JointComponent& component)
+{
     // Prepare to add new component (allocate memory if necessary and compute insertion index)
     uint32 index = prepareAddComponent(isSleeping);
 
@@ -104,7 +100,6 @@ void JointComponents::addComponent(Entity jointEntity, bool isSleeping, const Jo
     new (mBody2Entities + index) Entity(component.body2Entity);
     mJoints[index] = component.joint;
     new (mTypes + index) JointType(component.jointType);
-    new (mPositionCorrectionTechniques + index) JointsPositionCorrectionTechnique(component.positionCorrectionTechnique);
     mIsCollisionEnabled[index] = component.isCollisionEnabled;
     mIsAlreadyInIsland[index] = false;
 
@@ -119,8 +114,8 @@ void JointComponents::addComponent(Entity jointEntity, bool isSleeping, const Jo
 
 // Move a component from a source to a destination index in the components array
 // The destination location must contain a constructed object
-void JointComponents::moveComponentToIndex(uint32 srcIndex, uint32 destIndex) {
-
+void JointComponents::moveComponentToIndex(uint32 srcIndex, uint32 destIndex)
+{
     const Entity entity = mJointEntities[srcIndex];
 
     // Copy the data of the source component to the destination location
@@ -129,7 +124,6 @@ void JointComponents::moveComponentToIndex(uint32 srcIndex, uint32 destIndex) {
     new (mBody2Entities + destIndex) Entity(mBody2Entities[srcIndex]);
     mJoints[destIndex] = mJoints[srcIndex];
     new (mTypes + destIndex) JointType(mTypes[srcIndex]);
-    new (mPositionCorrectionTechniques + destIndex) JointsPositionCorrectionTechnique(mPositionCorrectionTechniques[srcIndex]);
     mIsCollisionEnabled[destIndex] = mIsCollisionEnabled[srcIndex];
     mIsAlreadyInIsland[destIndex] = mIsAlreadyInIsland[srcIndex];
 
@@ -145,15 +139,14 @@ void JointComponents::moveComponentToIndex(uint32 srcIndex, uint32 destIndex) {
 }
 
 // Swap two components in the array
-void JointComponents::swapComponents(uint32 index1, uint32 index2) {
-
+void JointComponents::swapComponents(uint32 index1, uint32 index2) 
+{
     // Copy component 1 data
     Entity jointEntity1(mJointEntities[index1]);
     Entity body1Entity1(mBody1Entities[index1]);
     Entity body2Entity1(mBody2Entities[index1]);
     Joint* joint1 = mJoints[index1];
     JointType jointType1(mTypes[index1]);
-    JointsPositionCorrectionTechnique positionCorrectionTechnique1(mPositionCorrectionTechniques[index1]);
     bool isCollisionEnabled1 = mIsCollisionEnabled[index1];
     bool isAlreadyInIsland = mIsAlreadyInIsland[index1];
 
@@ -168,7 +161,6 @@ void JointComponents::swapComponents(uint32 index1, uint32 index2) {
     new (mBody2Entities + index2) Entity(body2Entity1);
     mJoints[index2] = joint1;
     new (mTypes + index2) JointType(jointType1);
-    new (mPositionCorrectionTechniques + index2) JointsPositionCorrectionTechnique(positionCorrectionTechnique1);
     mIsCollisionEnabled[index2] = isCollisionEnabled1;
     mIsAlreadyInIsland[index2] = isAlreadyInIsland;
 
@@ -181,8 +173,8 @@ void JointComponents::swapComponents(uint32 index1, uint32 index2) {
 }
 
 // Destroy a component at a given index
-void JointComponents::destroyComponent(uint32 index) {
-
+void JointComponents::destroyComponent(uint32 index)
+{
     Components::destroyComponent(index);
 
     assert(mMapEntityToComponentIndex[mJointEntities[index]] == index);

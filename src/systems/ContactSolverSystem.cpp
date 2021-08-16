@@ -185,7 +185,9 @@ void ContactSolverSystem::initializeForIsland(uint islandIndex)
         mContactConstraints[mNbContactManifolds].rigidBodyComponentIndexBody1 = rigidBodyIndex1;
         mContactConstraints[mNbContactManifolds].rigidBodyComponentIndexBody2 = rigidBodyIndex2;
         mContactConstraints[mNbContactManifolds].nbContacts = externalManifold.nbContactPoints;
-        mContactConstraints[mNbContactManifolds].frictionCoefficient = computeMixedFrictionCoefficient(collider1, collider2);
+        mContactConstraints[mNbContactManifolds].frictionStatic = computeMixedFrictionStatic(collider1, collider2);
+        mContactConstraints[mNbContactManifolds].frictionDynamic = computeMixedFrictionDynamic(collider1, collider2);
+        mContactConstraints[mNbContactManifolds].restitution = computeMixedRestitution(collider1, collider2);
         mContactConstraints[mNbContactManifolds].externalContactManifold = &externalManifold;
         mContactConstraints[mNbContactManifolds].normal.setToZero();
 
@@ -253,6 +255,7 @@ void ContactSolverSystem::solvePositionXPBD()
                 mContactPoints[contactPointIndex].contactHappened = false;
                 continue;
             }
+
             mContactPoints[contactPointIndex].contactHappened = true;
             mXPBDProjections.applyBodyPairCorrectionXPBD(n * -d, 0.0, r1, r2, mTimeStep, mContactPoints[contactPointIndex].lambdaN, indexBody1, indexBody2);
         }
@@ -264,6 +267,7 @@ void ContactSolverSystem::solvePositionXPBD()
     {
         uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
         uint32 indexBody2 = mContactConstraints[c].rigidBodyComponentIndexBody2;
+        decimal frictionStatic = mContactConstraints[c].frictionStatic;
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
@@ -285,8 +289,6 @@ void ContactSolverSystem::solvePositionXPBD()
 
             Vector3 pDelta = (p1 - p1Previous) - (p2 - p2Previous);
             Vector3 pDeltaT = pDelta - n * (pDelta.dot(n));
-
-            decimal frictionStatic(0.80);
             decimal thresholdLambda = frictionStatic * mContactPoints[contactPointIndex].lambdaN;
 
             mXPBDProjections.applyBodyPairCorrectionThresholdXPBD(-pDeltaT, 0.0, r1, r2, mTimeStep, mContactPoints[contactPointIndex].lambdaT, thresholdLambda, indexBody1, indexBody2);
@@ -305,6 +307,7 @@ void ContactSolverSystem::solveVelocityXPBD()
     {
         uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
         uint32 indexBody2 = mContactConstraints[c].rigidBodyComponentIndexBody2;
+        decimal frictionDynamic = mContactConstraints[c].frictionDynamic;
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
@@ -330,7 +333,6 @@ void ContactSolverSystem::solveVelocityXPBD()
                 continue;
             }
 
-            decimal frictionDynamic(0.10);
             decimal dvFriction = frictionDynamic * mContactPoints[contactPointIndex].lambdaN / mTimeStep;
             Vector3 corr = (dvFriction < vT_) ? vT * (-1.0 / vT_) * dvFriction : -vT;
 
@@ -344,15 +346,11 @@ void ContactSolverSystem::solveVelocityXPBD()
     {
         uint32 indexBody1 = mContactConstraints[c].rigidBodyComponentIndexBody1;
         uint32 indexBody2 = mContactConstraints[c].rigidBodyComponentIndexBody2;
+        decimal restitution = mContactConstraints[c].restitution;
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
-            if (!mContactPoints[contactPointIndex].contactHappened)
-            {
-                continue;
-            }
-
-            if (mContactPoints[contactPointIndex].isRestingContact)
+            if (!mContactPoints[contactPointIndex].contactHappened || mContactPoints[contactPointIndex].isRestingContact)
             {
                 continue;
             }
@@ -366,9 +364,7 @@ void ContactSolverSystem::solveVelocityXPBD()
 
             decimal vN = n.dot(v1 - v2);
             decimal vNPreUpdate = mContactPoints[contactPointIndex].vNPreUpdate;
-            decimal restitution(0.5); // TODO : to avoid jittering we set e = 0 if vN is small ...
-
-            Vector3 corr = n * (std::min(-restitution * vNPreUpdate, decimal(0.0)) - vN);
+            Vector3 corr = (std::abs(vN) < decimal(2.0) * mWorld.getGravity().length() * mTimeStep) ? (n * -vN) : n * (std::min(-restitution * vNPreUpdate, decimal(0.0)) - vN);
 
             mXPBDProjections.applyBodyPairCorrectionVelocityXPBD(corr, 0.0, r1, r2, mTimeStep, indexBody1, indexBody2);
         }
@@ -388,10 +384,10 @@ void ContactSolverSystem::cacheVnXPBD()
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
-            //if (!mContactPoints[contactPointIndex].contactHappened)
-            //{
-            //    continue;
-            //}
+            if (!mContactPoints[contactPointIndex].contactHappened)
+            {
+                continue;
+            }
 
             Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;
             Vector3 r2 = mRigidBodyComponents.mXPBDOrientations[indexBody2] * mContactPoints[contactPointIndex].r2;
@@ -406,23 +402,23 @@ void ContactSolverSystem::cacheVnXPBD()
 }
 
 // Compute the collision restitution factor from the restitution factor of each collider
-decimal ContactSolverSystem::computeMixedRestitutionFactor(Collider* collider1, Collider* collider2) const {
-    decimal restitution1 = collider1->getMaterial().getBounciness();
-    decimal restitution2 = collider2->getMaterial().getBounciness();
+decimal ContactSolverSystem::computeMixedRestitution(Collider * collider1, Collider * collider2) const 
+{
+    decimal restitution1 = collider1->getMaterial().getRestitution();
+    decimal restitution2 = collider2->getMaterial().getRestitution();
 
     // Return the largest restitution factor
     return (restitution1 > restitution2) ? restitution1 : restitution2;
 }
 
-// Compute the mixed friction coefficient from the friction coefficient of each collider
-decimal ContactSolverSystem::computeMixedFrictionCoefficient(Collider* collider1, Collider* collider2) const {
-
-    // Use the geometric mean to compute the mixed friction coefficient
-    return std::sqrt(collider1->getMaterial().getFrictionCoefficient() *
-                collider2->getMaterial().getFrictionCoefficient());
+// Compute the mixed static friction coefficient from the static friction of each collider
+decimal ContactSolverSystem::computeMixedFrictionStatic(Collider * collider1, Collider * collider2) const 
+{
+    return std::sqrt(collider1->getMaterial().getFrictionStatic() * collider2->getMaterial().getFrictionStatic());
 }
 
-// Compute th mixed rolling resistance factor between two colliders
-inline decimal ContactSolverSystem::computeMixedRollingResistance(Collider* collider1, Collider* collider2) const {
-    return decimal(0.5f) * (collider1->getMaterial().getRollingResistance() + collider2->getMaterial().getRollingResistance());
+// Compute the mixed dynamic friction coefficient from the dynamic friction of each collider
+decimal ContactSolverSystem::computeMixedFrictionDynamic(Collider * collider1, Collider * collider2) const
+{
+    return std::sqrt(collider1->getMaterial().getFrictionDynamic() * collider2->getMaterial().getFrictionDynamic());
 }

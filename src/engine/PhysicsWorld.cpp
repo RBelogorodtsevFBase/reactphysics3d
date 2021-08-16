@@ -50,44 +50,51 @@ uint PhysicsWorld::mNbWorlds = 0;
  * @param worldSettings The settings of the world
  * @param profiler Pointer to the profiler
  */
-PhysicsWorld::PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& worldSettings, Profiler* profiler)
-              : mMemoryManager(memoryManager), mConfig(worldSettings), mEntityManager(mMemoryManager.getHeapAllocator()), mDebugRenderer(mMemoryManager.getHeapAllocator()),
-                mCollisionBodyComponents(mMemoryManager.getHeapAllocator()), mRigidBodyComponents(mMemoryManager.getHeapAllocator()),
-                mTransformComponents(mMemoryManager.getHeapAllocator()), mCollidersComponents(mMemoryManager.getHeapAllocator()),
-                mJointsComponents(mMemoryManager.getHeapAllocator()), mBallAndSocketJointsComponents(mMemoryManager.getHeapAllocator()),
-                mFixedJointsComponents(mMemoryManager.getHeapAllocator()), mHingeJointsComponents(mMemoryManager.getHeapAllocator()),
-                mSliderJointsComponents(mMemoryManager.getHeapAllocator()), mCollisionDetection(this, mCollidersComponents, mTransformComponents, mCollisionBodyComponents, mRigidBodyComponents,
-                                        mMemoryManager),
-                mCollisionBodies(mMemoryManager.getHeapAllocator()), mEventListener(nullptr),
-                mName(worldSettings.worldName),  mIslands(mMemoryManager.getSingleFrameAllocator()), mProcessContactPairsOrderIslands(mMemoryManager.getSingleFrameAllocator()),
-                mContactSolverSystem(mMemoryManager, *this, mIslands, mCollisionBodyComponents, mRigidBodyComponents, mCollidersComponents),
-                mConstraintSolverSystem(*this, mIslands, mRigidBodyComponents, mTransformComponents, mJointsComponents,
-                                        mBallAndSocketJointsComponents, mFixedJointsComponents, mHingeJointsComponents,
-                                        mSliderJointsComponents),
-                mDynamicsSystem(*this, mCollisionBodyComponents, mRigidBodyComponents, mTransformComponents, mCollidersComponents, mIsGravityEnabled, mConfig.gravity),
-                mXPBDNbSubsteps(mConfig.defaultXPBDNbSubsteps),
-                mNbVelocitySolverIterations(mConfig.defaultVelocitySolverNbIterations),
-                mNbPositionSolverIterations(mConfig.defaultPositionSolverNbIterations), 
-                mIsSleepingEnabled(mConfig.isSleepingEnabled), mRigidBodies(mMemoryManager.getPoolAllocator()),
-                mIsGravityEnabled(true), mSleepLinearVelocity(mConfig.defaultSleepLinearVelocity),
-                mSleepAngularVelocity(mConfig.defaultSleepAngularVelocity), mTimeBeforeSleep(mConfig.defaultTimeBeforeSleep), mCurrentJointId(0) {
-
+PhysicsWorld::PhysicsWorld(MemoryManager & memoryManager, const WorldSettings & worldSettings, Profiler * profiler) 
+    : mMemoryManager(memoryManager)
+    , mConfig(worldSettings)
+    , mEntityManager(mMemoryManager.getHeapAllocator())
+    , mDebugRenderer(mMemoryManager.getHeapAllocator())
+    , mCollisionBodyComponents(mMemoryManager.getHeapAllocator())
+    , mRigidBodyComponents(mMemoryManager.getHeapAllocator())
+    , mTransformComponents(mMemoryManager.getHeapAllocator())
+    , mCollidersComponents(mMemoryManager.getHeapAllocator())
+    , mJointsComponents(mMemoryManager.getHeapAllocator())
+    , mBallAndSocketJointsComponents(mMemoryManager.getHeapAllocator())
+    , mFixedJointsComponents(mMemoryManager.getHeapAllocator())
+    , mHingeJointsComponents(mMemoryManager.getHeapAllocator())
+    , mSliderJointsComponents(mMemoryManager.getHeapAllocator())
+    , mCollisionDetection(this, mCollidersComponents, mTransformComponents, mCollisionBodyComponents, mRigidBodyComponents, mMemoryManager)
+    , mCollisionBodies(mMemoryManager.getHeapAllocator())
+    , mEventListener(nullptr)
+    , mName(worldSettings.worldName)
+    , mIslands(mMemoryManager.getSingleFrameAllocator())
+    , mProcessContactPairsOrderIslands(mMemoryManager.getSingleFrameAllocator())
+    , mContactSolverSystem(mMemoryManager, *this, mIslands, mCollisionBodyComponents, mRigidBodyComponents, mCollidersComponents)
+    , mConstraintSolverSystem(*this, mIslands, mRigidBodyComponents, mTransformComponents, mJointsComponents, mBallAndSocketJointsComponents, mFixedJointsComponents, mHingeJointsComponents, mSliderJointsComponents)
+    , mDynamicsSystem(*this, mCollisionBodyComponents, mRigidBodyComponents, mTransformComponents, mCollidersComponents, mIsGravityEnabled, mConfig.gravity)
+    , mXPBDNbSubsteps(mConfig.defaultXPBDNbSubsteps), mIsSleepingEnabled(mConfig.isSleepingEnabled)
+    , mRigidBodies(mMemoryManager.getPoolAllocator())
+    , mIsGravityEnabled(true)
+    , mSleepLinearVelocity(mConfig.defaultSleepLinearVelocity)
+    , mSleepAngularVelocity(mConfig.defaultSleepAngularVelocity)
+    , mTimeBeforeSleep(mConfig.defaultTimeBeforeSleep)
+    , mCurrentJointId(0)
+{
     // Automatically generate a name for the world
-    if (mName == "") {
-
+    if (mName == "") 
+    {
         std::stringstream ss;
         ss << "world";
 
-        if (mNbWorlds > 0) {
+        if (mNbWorlds > 0) 
+        {
             ss << mNbWorlds;
         }
-
         mName = ss.str();
     }
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
-
     assert(profiler != nullptr);
     mProfiler = profiler;
 
@@ -96,7 +103,6 @@ PhysicsWorld::PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& wo
     mContactSolverSystem.setProfiler(mProfiler);
     mDynamicsSystem.setProfiler(mProfiler);
     mCollisionDetection.setProfiler(mProfiler);
-
 #endif
 
     mNbWorlds++;
@@ -108,35 +114,35 @@ PhysicsWorld::PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& wo
 
     RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
              "Physics World: Physics world " + mName + " has been created",  __FILE__, __LINE__);
-
 }
 
 // Destructor
-PhysicsWorld::~PhysicsWorld() {
-
+PhysicsWorld::~PhysicsWorld()
+{
     RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
              "Physics World: Physics world " + mName + " has been destroyed",  __FILE__, __LINE__);
 
     // Destroy all the collision bodies that have not been removed
-    for (int i=mCollisionBodies.size() - 1 ; i >= 0; i--) {
+    for (int i=mCollisionBodies.size() - 1 ; i >= 0; i--) 
+    {
         destroyCollisionBody(mCollisionBodies[i]);
     }
 
 #ifdef IS_RP3D_PROFILING_ENABLED
-
-
     // Print the profiling report into the destinations
     mProfiler->printReport();
 
 #endif
 
     // Destroy all the joints that have not been removed
-    for (uint32 i=0; i < mJointsComponents.getNbComponents(); i++) {
+    for (uint32 i=0; i < mJointsComponents.getNbComponents(); i++)
+    {
         destroyJoint(mJointsComponents.mJoints[i]);
     }
 
     // Destroy all the rigid bodies that have not been removed
-    for (int i=mRigidBodies.size() - 1; i >= 0; i--) {
+    for (int i=mRigidBodies.size() - 1; i >= 0; i--)
+    {
         destroyRigidBody(mRigidBodies[i]);
     }
 
@@ -156,8 +162,8 @@ PhysicsWorld::~PhysicsWorld() {
  * @param transform Transformation mapping the local-space of the body to world-space
  * @return A pointer to the body that has been created in the world
  */
-CollisionBody* PhysicsWorld::createCollisionBody(const Transform& transform) {
-
+CollisionBody * PhysicsWorld::createCollisionBody(const Transform & transform)
+{
     // Create a new entity for the body
     Entity entity = mEntityManager.createEntity();
 
@@ -631,13 +637,12 @@ Joint* PhysicsWorld::createJoint(const JointInfo& jointInfo) {
         }
     }
 
-    JointComponents::JointComponent jointComponent(jointInfo.body1->getEntity(), jointInfo.body2->getEntity(), newJoint, jointInfo.type,
-                                                   jointInfo.positionCorrectionTechnique, jointInfo.isCollisionEnabled);
+    JointComponents::JointComponent jointComponent(jointInfo.body1->getEntity(), jointInfo.body2->getEntity(), newJoint, jointInfo.type, jointInfo.isCollisionEnabled);
     mJointsComponents.addComponent(entity, isJointDisabled, jointComponent);
 
     // If the collision between the two bodies of the constraint is disabled
-    if (!jointInfo.isCollisionEnabled) {
-
+    if (!jointInfo.isCollisionEnabled) 
+    {
         // Add the pair of bodies in the set of body pairs that cannot collide with each other
         mCollisionDetection.addNoCollisionPair(jointInfo.body1->getEntity(), jointInfo.body2->getEntity());
     }
@@ -658,8 +663,8 @@ Joint* PhysicsWorld::createJoint(const JointInfo& jointInfo) {
 /**
  * @param joint Pointer to the joint you want to destroy
  */
-void PhysicsWorld::destroyJoint(Joint* joint) {
-
+void PhysicsWorld::destroyJoint(Joint * joint)
+{
     assert(joint != nullptr);
 
     RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::Joint,
@@ -720,18 +725,6 @@ void PhysicsWorld::setXPBDNbSubsteps(uint nbSteps) {
 
     RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
         "Physics World: Set XPBD nb substeps set to " + std::to_string(nbSteps), __FILE__, __LINE__);
-}
-
-// Set the number of iterations for the velocity constraint solver
-/**
- * @param nbIterations Number of iterations for the velocity solver
- */
-void PhysicsWorld::setNbIterationsVelocitySolver(uint nbIterations) {
-
-    mNbVelocitySolverIterations = nbIterations;
-
-    RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
-             "Physics World: Set nb iterations velocity solver to " + std::to_string(nbIterations),  __FILE__, __LINE__);
 }
 
 // Add the joint to the list of joints of the two bodies involved in the joint
@@ -999,18 +992,6 @@ void PhysicsWorld::enableSleeping(bool isSleepingEnabled) {
 
     RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
              "Physics World: isSleepingEnabled=" + (isSleepingEnabled ? std::string("true") : std::string("false")) ,  __FILE__, __LINE__);
-}
-
-// Set the number of iterations for the position constraint solver
-/**
- * @param nbIterations Number of iterations for the position solver
- */
-void PhysicsWorld::setNbIterationsPositionSolver(uint nbIterations) {
-
-    mNbPositionSolverIterations = nbIterations;
-
-    RP3D_LOG(mConfig.worldName, Logger::Level::Information, Logger::Category::World,
-             "Physics World: Set nb iterations position solver to " + std::to_string(nbIterations),  __FILE__, __LINE__);
 }
 
 // Set the gravity vector of the world

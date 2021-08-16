@@ -40,16 +40,18 @@ using namespace reactphysics3d;
  * @param transform Transformation from collision shape local-space to body local-space
  * @param mass Mass of the collision shape (in kilograms)
  */
-Collider::Collider(Entity entity, CollisionBody* body, MemoryManager& memoryManager)
-           :mMemoryManager(memoryManager), mEntity(entity), mBody(body),
-            mMaterial(body->mWorld.mConfig.defaultFrictionCoefficient, body->mWorld.mConfig.defaultRollingRestistance,
-                      body->mWorld.mConfig.defaultBounciness), mUserData(nullptr) {
-
+Collider::Collider(Entity entity, CollisionBody* body, MemoryManager& memoryManager) 
+    : mMemoryManager(memoryManager)
+    , mEntity(entity)
+    , mBody(body)
+    , mMaterial(body->mWorld.mConfig.defaultFrictionStatic, body->mWorld.mConfig.defaultFrictionDynamic, body->mWorld.mConfig.defaultRestitution)
+    , mUserData(nullptr)
+{
 }
 
 // Destructor
-Collider::~Collider() {
-
+Collider::~Collider()
+{
 }
 
 // Return true if a point is inside the collision shape
@@ -57,7 +59,8 @@ Collider::~Collider() {
  * @param worldPoint Point to test in world-space coordinates
  * @return True if the point is inside the collision shape
  */
-bool Collider::testPointInside(const Vector3& worldPoint) {
+bool Collider::testPointInside(const Vector3 & worldPoint)
+{
     const Transform localToWorld = mBody->mWorld.mTransformComponents.getTransform(mBody->getEntity()) *
                                    mBody->mWorld.mCollidersComponents.getLocalToBodyTransform(mEntity);
     const Vector3 localPoint = localToWorld.getInverse() * worldPoint;
@@ -69,8 +72,8 @@ bool Collider::testPointInside(const Vector3& worldPoint) {
 /**
  * @param collisionCategoryBits The collision category bits mask of the collider
  */
-void Collider::setCollisionCategoryBits(unsigned short collisionCategoryBits) {
-
+void Collider::setCollisionCategoryBits(unsigned short collisionCategoryBits)
+{
     mBody->mWorld.mCollidersComponents.setCollisionCategoryBits(mEntity, collisionCategoryBits);
 
     int broadPhaseId = mBody->mWorld.mCollidersComponents.getBroadPhaseId(mEntity);
@@ -87,8 +90,8 @@ void Collider::setCollisionCategoryBits(unsigned short collisionCategoryBits) {
 /**
  * @param collideWithMaskBits The bits mask that specifies with which collision category this shape will collide
  */
-void Collider::setCollideWithMaskBits(unsigned short collideWithMaskBits) {
-
+void Collider::setCollideWithMaskBits(unsigned short collideWithMaskBits)
+{
     mBody->mWorld.mCollidersComponents.setCollideWithMaskBits(mEntity, collideWithMaskBits);
 
     int broadPhaseId = mBody->mWorld.mCollidersComponents.getBroadPhaseId(mEntity);
@@ -105,8 +108,8 @@ void Collider::setCollideWithMaskBits(unsigned short collideWithMaskBits) {
 /**
  * @param transform The transform from local-space of the collider into the local-space of the body
  */
-void Collider::setLocalToBodyTransform(const Transform& transform) {
-
+void Collider::setLocalToBodyTransform(const Transform & transform)
+{
     mBody->mWorld.mCollidersComponents.setLocalToBodyTransform(mEntity, transform);
 
     // Update the local-to-world transform
@@ -129,7 +132,8 @@ void Collider::setLocalToBodyTransform(const Transform& transform) {
 /**
  * @return The AABB of the collider in world-space
  */
-const AABB Collider::getWorldAABB() const {
+const AABB Collider::getWorldAABB() const
+{
     AABB aabb;
     CollisionShape* collisionShape = mBody->mWorld.mCollidersComponents.getCollisionShape(mEntity);
     collisionShape->computeAABB(aabb, getLocalToWorldTransform());
@@ -140,7 +144,8 @@ const AABB Collider::getWorldAABB() const {
 /**
  * @return Pointer to the collision shape
  */
-CollisionShape* Collider::getCollisionShape() {
+CollisionShape * Collider::getCollisionShape()
+{
     return mBody->mWorld.mCollidersComponents.getCollisionShape(mEntity);
 }
 
@@ -148,12 +153,14 @@ CollisionShape* Collider::getCollisionShape() {
 /**
  * @return Pointer to the collision shape
  */
-const CollisionShape* Collider::getCollisionShape() const {
+const CollisionShape * Collider::getCollisionShape() const
+{
     return mBody->mWorld.mCollidersComponents.getCollisionShape(mEntity);
 }
 
 // Return the broad-phase id
-int Collider::getBroadPhaseId() const {
+int Collider::getBroadPhaseId() const
+{
     return mBody->mWorld.mCollidersComponents.getBroadPhaseId(mEntity);
 }
 
@@ -162,7 +169,8 @@ int Collider::getBroadPhaseId() const {
  * @return The transformation that transforms the local-space of the collider
  *         to the local-space of the body
  */
-const Transform& Collider::getLocalToBodyTransform() const {
+const Transform & Collider::getLocalToBodyTransform() const
+{
     return mBody->mWorld.mCollidersComponents.getLocalToBodyTransform(mEntity);
 }
 
@@ -173,10 +181,13 @@ const Transform& Collider::getLocalToBodyTransform() const {
  *             methods returned true
  * @return True if the ray hits the collision shape
  */
-bool Collider::raycast(const Ray& ray, RaycastInfo& raycastInfo) {
-
+bool Collider::raycast(const Ray& ray, RaycastInfo& raycastInfo)
+{
     // If the corresponding body is not active, it cannot be hit by rays
-    if (!mBody->isActive()) return false;
+    if (!mBody->isActive())
+    {
+        return false;
+    }
 
     // Convert the ray into the local-space of the collision shape
     const Transform localToWorldTransform = mBody->mWorld.mCollidersComponents.getLocalToWorldTransform(mEntity);
@@ -200,7 +211,8 @@ bool Collider::raycast(const Ray& ray, RaycastInfo& raycastInfo) {
 /**
  * @return The collision category bits mask of the collider
  */
-unsigned short Collider::getCollisionCategoryBits() const {
+unsigned short Collider::getCollisionCategoryBits() const 
+{
     return mBody->mWorld.mCollidersComponents.getCollisionCategoryBits(mEntity);
 }
 
@@ -208,12 +220,14 @@ unsigned short Collider::getCollisionCategoryBits() const {
 /**
  * @return The bits mask that specifies with which collision category this shape will collide
  */
-unsigned short Collider::getCollideWithMaskBits() const {
+unsigned short Collider::getCollideWithMaskBits() const 
+{
     return mBody->mWorld.mCollidersComponents.getCollideWithMaskBits(mEntity);
 }
 
 // Notify the collider that the size of the collision shape has been changed by the user
-void Collider::setHasCollisionShapeChangedSize(bool hasCollisionShapeChangedSize) {
+void Collider::setHasCollisionShapeChangedSize(bool hasCollisionShapeChangedSize) 
+{
     mBody->mWorld.mCollidersComponents.setHasCollisionShapeChangedSize(mEntity, hasCollisionShapeChangedSize);
 }
 
@@ -221,8 +235,8 @@ void Collider::setHasCollisionShapeChangedSize(bool hasCollisionShapeChangedSize
 /**
  * @param material The material you want to set to the body
  */
-void Collider::setMaterial(const Material& material) {
-
+void Collider::setMaterial(const Material& material)
+{
     mMaterial = material;
 
     RP3D_LOG(mBody->mWorld.mConfig.worldName, Logger::Level::Information, Logger::Category::Collider,
@@ -234,7 +248,8 @@ void Collider::setMaterial(const Material& material) {
  * @return The transformation that transforms the local-space of the collision
  *         shape to the world-space
  */
-const Transform Collider::getLocalToWorldTransform() const {
+const Transform Collider::getLocalToWorldTransform() const
+{
     return mBody->mWorld.mCollidersComponents.getLocalToWorldTransform(mEntity);
 }
 
@@ -242,7 +257,8 @@ const Transform Collider::getLocalToWorldTransform() const {
 /**
  * @return True if this collider is a trigger and false otherwise
  */
-bool Collider::getIsTrigger() const {
+bool Collider::getIsTrigger() const 
+{
    return mBody->mWorld.mCollidersComponents.getIsTrigger(mEntity);
 }
 
@@ -250,19 +266,18 @@ bool Collider::getIsTrigger() const {
 /**
  * @param isTrigger True if you want to set this collider as a trigger and false otherwise
  */
-void Collider::setIsTrigger(bool isTrigger) const {
+void Collider::setIsTrigger(bool isTrigger) const 
+{
    mBody->mWorld.mCollidersComponents.setIsTrigger(mEntity, isTrigger);
 }
 
 #ifdef IS_RP3D_PROFILING_ENABLED
 
-
 // Set the profiler
-void Collider::setProfiler(Profiler* profiler) {
-
+void Collider::setProfiler(Profiler* profiler)
+{
     mProfiler = profiler;
-
-    CollisionShape* collisionShape = mBody->mWorld.mCollidersComponents.getCollisionShape(mEntity);
+    CollisionShape * collisionShape = mBody->mWorld.mCollidersComponents.getCollisionShape(mEntity);
     collisionShape->setProfiler(profiler);
 }
 
