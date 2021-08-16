@@ -174,8 +174,7 @@ void CollisionDetectionSystem::addLostContactPair(uint64 overlappingPairIndex)
     const bool isTrigger = isCollider1Trigger || isCollider2Trigger;
 
     // Create a lost contact pair
-    ContactPair lostContactPair(mOverlappingPairs.mPairIds[overlappingPairIndex], body1Entity, body2Entity, collider1Entity, collider2Entity, 
-        mLostContactPairs.size(), true, isTrigger, mMemoryManager.getHeapAllocator());
+    ContactPair lostContactPair(mOverlappingPairs.mPairIds[overlappingPairIndex], body1Entity, body2Entity, collider1Entity, collider2Entity, mLostContactPairs.size(), true, isTrigger, mMemoryManager.getHeapAllocator());
     mLostContactPairs.add(lostContactPair);
 }
 
@@ -207,40 +206,52 @@ void CollisionDetectionSystem::updateOverlappingPairs(const List<Pair<int32, int
             const Entity body2Entity = mCollidersComponents.mBodiesEntities[collider2Index];
 
             // If the two colliders are from the same body, skip it
-            if (body1Entity != body2Entity) 
+            if (body1Entity == body2Entity)
             {
-                // Compute the overlapping pair ID
-                const uint64 pairId = pairNumbers(std::max(nodePair.first, nodePair.second), std::min(nodePair.first, nodePair.second));
+                continue;
+            }
 
-                // Check if the overlapping pair already exists
-                auto it = mOverlappingPairs.mMapPairIdToPairIndex.find(pairId);
-                if (it == mOverlappingPairs.mMapPairIdToPairIndex.end()) 
+            // If the two colliders have same non-zero aggregate id, skip it
+            int aggregateId1 = mCollidersComponents.getAggregateId(collider1Entity);
+            if (aggregateId1 != 0)
+            {
+                if (mCollidersComponents.getAggregateId(collider2Entity) == aggregateId1)
                 {
-                    const unsigned short shape1CollideWithMaskBits = mCollidersComponents.mCollideWithMaskBits[collider1Index];
-                    const unsigned short shape2CollideWithMaskBits = mCollidersComponents.mCollideWithMaskBits[collider2Index];
+                    continue;
+                }
+            }
 
-                    const unsigned short shape1CollisionCategoryBits = mCollidersComponents.mCollisionCategoryBits[collider1Index];
-                    const unsigned short shape2CollisionCategoryBits = mCollidersComponents.mCollisionCategoryBits[collider2Index];
+            // Compute the overlapping pair ID
+            const uint64 pairId = pairNumbers(std::max(nodePair.first, nodePair.second), std::min(nodePair.first, nodePair.second));
 
-                    // Check if the collision filtering allows collision between the two shapes
-                    if ((shape1CollideWithMaskBits & shape2CollisionCategoryBits) != 0 && (shape1CollisionCategoryBits & shape2CollideWithMaskBits) != 0) 
+            // Check if the overlapping pair already exists
+            auto it = mOverlappingPairs.mMapPairIdToPairIndex.find(pairId);
+            if (it == mOverlappingPairs.mMapPairIdToPairIndex.end()) 
+            {
+                const unsigned short shape1CollideWithMaskBits = mCollidersComponents.mCollideWithMaskBits[collider1Index];
+                const unsigned short shape2CollideWithMaskBits = mCollidersComponents.mCollideWithMaskBits[collider2Index];
+
+                const unsigned short shape1CollisionCategoryBits = mCollidersComponents.mCollisionCategoryBits[collider1Index];
+                const unsigned short shape2CollisionCategoryBits = mCollidersComponents.mCollisionCategoryBits[collider2Index];
+
+                // Check if the collision filtering allows collision between the two shapes
+                if ((shape1CollideWithMaskBits & shape2CollisionCategoryBits) != 0 && (shape1CollisionCategoryBits & shape2CollideWithMaskBits) != 0) 
+                {
+                    Collider* shape1 = mCollidersComponents.mColliders[collider1Index];
+                    Collider* shape2 = mCollidersComponents.mColliders[collider2Index];
+
+                    // Check that at least one collision shape is convex
+                    if (shape1->getCollisionShape()->isConvex() || shape2->getCollisionShape()->isConvex()) 
                     {
-                        Collider* shape1 = mCollidersComponents.mColliders[collider1Index];
-                        Collider* shape2 = mCollidersComponents.mColliders[collider2Index];
-
-                        // Check that at least one collision shape is convex
-                        if (shape1->getCollisionShape()->isConvex() || shape2->getCollisionShape()->isConvex()) 
-                        {
-                            // Add the new overlapping pair
-                            mOverlappingPairs.addPair(shape1, shape2);
-                        }
+                        // Add the new overlapping pair
+                        mOverlappingPairs.addPair(shape1, shape2);
                     }
                 }
-                else 
-                {
-                    // We do not need to test the pair for overlap because it has just been reported that they still overlap
-                    mOverlappingPairs.mNeedToTestOverlap[it->second] = false;
-                }
+            }
+            else 
+            {
+                // We do not need to test the pair for overlap because it has just been reported that they still overlap
+                mOverlappingPairs.mNeedToTestOverlap[it->second] = false;
             }
         }
     }

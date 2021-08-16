@@ -235,12 +235,6 @@ void ContactSolverSystem::solvePositionXPBD()
 
         for (short int i = 0; i < mContactConstraints[c].nbContacts; i++, contactPointIndex++)
         {
-            if (mRigidBodyComponents.mInverseMasses[indexBody1] != 0.0 && mRigidBodyComponents.mInverseMasses[indexBody2] != 0.0) // TODO : this is makeshift to avoid self-collisions !!
-            {
-                mContactPoints[contactPointIndex].contactHappened = false;
-                continue;
-            }
-
             const Vector3 & n = mContactPoints[contactPointIndex].normal;
 
             Vector3 r1 = mRigidBodyComponents.mXPBDOrientations[indexBody1] * mContactPoints[contactPointIndex].r1;

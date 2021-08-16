@@ -160,6 +160,9 @@ class Collider {
         /// Set whether the collider is a trigger
         void setIsTrigger(bool isTrigger) const;
 
+        /// Assign aggregate id. Colliders with the same id (non-zero) don't collide
+        void setAggregateId(int id) const;
+
 #ifdef IS_RP3D_PROFILING_ENABLED
 
 		/// Set the profiler

@@ -97,8 +97,10 @@ class ColliderComponents : public Components {
         bool* mHasCollisionShapeChangedSize;
 
         /// True if the collider is a trigger
-        bool* mIsTrigger;
+        bool * mIsTrigger;
 
+        /// Id of collider aggregate. Colliders with same (non-zero) aggregate id don't collide
+        int * mAggregateId;
 
         // -------------------- Methods -------------------- //
 
@@ -203,6 +205,12 @@ class ColliderComponents : public Components {
 
         /// Set whether a collider is a trigger
         void setIsTrigger(Entity colliderEntity, bool isTrigger);
+
+        /// Return aggregate id. Colliders with the same id (non-zero) don't collide
+        int getAggregateId(Entity colliderEntity) const;
+
+        /// Assign aggregate id. Colliders with the same id (non-zero) don't collide
+        void setAggregateId(Entity colliderEntity, int id);
 
         // -------------------- Friendship -------------------- //
 
@@ -342,19 +350,31 @@ inline void ColliderComponents::setHasCollisionShapeChangedSize(Entity colliderE
 
 
 // Return true if a collider is a trigger
-inline bool ColliderComponents::getIsTrigger(Entity colliderEntity) const {
-
+inline bool ColliderComponents::getIsTrigger(Entity colliderEntity) const
+{
     assert(mMapEntityToComponentIndex.containsKey(colliderEntity));
-
     return mIsTrigger[mMapEntityToComponentIndex[colliderEntity]];
 }
 
 // Set whether a collider is a trigger
-inline void ColliderComponents::setIsTrigger(Entity colliderEntity, bool isTrigger) {
-
+inline void ColliderComponents::setIsTrigger(Entity colliderEntity, bool isTrigger)
+{
     assert(mMapEntityToComponentIndex.containsKey(colliderEntity));
-
     mIsTrigger[mMapEntityToComponentIndex[colliderEntity]] = isTrigger;
+}
+
+// Return aggregate id. Colliders with the same id (non-zero) don't collide
+inline int ColliderComponents::getAggregateId(Entity colliderEntity) const
+{
+    assert(mMapEntityToComponentIndex.containsKey(colliderEntity));
+    return mAggregateId[mMapEntityToComponentIndex[colliderEntity]];
+}
+
+// Assign aggregate id. Colliders with the same id (non-zero) don't collide
+inline void ColliderComponents::setAggregateId(Entity colliderEntity, int id)
+{
+    assert(mMapEntityToComponentIndex.containsKey(colliderEntity));
+    mAggregateId[mMapEntityToComponentIndex[colliderEntity]] = id;
 }
 
 }

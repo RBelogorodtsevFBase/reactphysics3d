@@ -271,6 +271,15 @@ void Collider::setIsTrigger(bool isTrigger) const
    mBody->mWorld.mCollidersComponents.setIsTrigger(mEntity, isTrigger);
 }
 
+// Assign aggregate id. Colliders with the same id (non-zero) don't collide
+/**
+ * @param id Is an aggregate id. Colliders with the same id (non-zero) don't collide
+ */
+void Collider::setAggregateId(int id) const
+{
+    mBody->mWorld.mCollidersComponents.setAggregateId(mEntity, id);
+}
+
 #ifdef IS_RP3D_PROFILING_ENABLED
 
 // Set the profiler
