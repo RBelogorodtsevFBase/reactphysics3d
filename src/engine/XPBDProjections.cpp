@@ -14,7 +14,8 @@ void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componen
     // the key function to handle all angular joint limits
     Vector3 c = n1.cross(n2);
 
-    decimal phi = std::asin(c.dot(n));
+    decimal cn = c.dot(n);
+    decimal phi = std::asin(std::clamp(cn, decimal(-1.0), decimal(1.0)));
     if (n1.dot(n2) < decimal(0.0))
     {
         phi = PI - phi;
@@ -58,7 +59,8 @@ void XPBDProjections::limitAngleXPBD(uint32 componentIndexBodyA, uint32 componen
     // the key function to handle all angular joint limits
     Vector3 c = n1.cross(n2);
 
-    decimal phi = std::asin(c.dot(n));
+    decimal cn = c.dot(n);
+    decimal phi = std::asin(std::clamp(cn, decimal(-1.0), decimal(1.0)));
     if (n1.dot(n2) < decimal(0.0))
     {
         phi = PI - phi;
