@@ -72,80 +72,31 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
 
         BallAndSocketJoint * joint = mBallAndSocketJointComponents.mJoints[i];
 
-        // Swing X
         {
             Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
+            Quaternion globalOrientationTargetInv = globalOrientationTarget.getInverse();
             Quaternion globalOrientation2 = orientationBody2 * localOrientation2;
 
-            Vector3 z1 = globalOrientationTarget.getAxisZ();
-            Vector3 z2 = globalOrientation2.getAxisZ();
-
-            Vector3 x1 = globalOrientationTarget.getAxisX();
-            Vector3 z2_ = z2 - x1 * z2.dot(x1);
-            z2_.normalize();
-
-            decimal & lambda = mBallAndSocketJointComponents.mLambda[i].x;
-            decimal angularVelocityDeltaProjected = angularVelocityDelta.dot(x1);
-
-            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, x1, z1, z2_, limitsAnglesMin.x, limitsAnglesMax.x, 
-                mBallAndSocketJointComponents.mCallbacksX[i], joint, angularVelocityDeltaProjected, timeSubStep, lambda);
-        }
-
-        // Swing Y
-        {
-            Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
-            Quaternion globalOrientation2 = orientationBody2 * localOrientation2;
-
-            Vector3 z1 = globalOrientationTarget.getAxisZ();
-            Vector3 z2 = globalOrientation2.getAxisZ();
-
-            Vector3 y1 = globalOrientationTarget.getAxisY();
-            Vector3 z2_ = z2 - y1 * z2.dot(y1);
-            z2_.normalize();
-
-            decimal & lambda = mBallAndSocketJointComponents.mLambda[i].y;
-            decimal angularVelocityDeltaProjected = angularVelocityDelta.dot(y1);
-
-            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, y1, z1, z2_, limitsAnglesMin.y, limitsAnglesMax.y, 
-                mBallAndSocketJointComponents.mCallbacksY[i], joint, angularVelocityDeltaProjected, timeSubStep, lambda);
-        }
-
-        // Twist
-        {
-            Quaternion globalOrientationTarget = orientationBody1 * localOrientationTarget;
-            Quaternion globalOrientation2 = orientationBody2 * localOrientation2;
-
-            Vector3 n1 = globalOrientationTarget.getAxisZ();
-            Vector3 n2 = globalOrientation2.getAxisZ();
-            Vector3 n = (n1 + n2);
-            n.normalize();
-
-            Vector3 a1 = globalOrientationTarget.getAxisX();
-            a1 -= n * n.dot(a1);
-            a1.normalize();
-
-            Vector3 a2 = globalOrientation2.getAxisX();
-            a2 -= n * n.dot(a2);
-            a2.normalize();
-
-            // handling gimbal lock problem
-            decimal maxCorr;
-            if (n1.dot(n2) > decimal(-0.5))
+            Quaternion toCurrentProjected = globalOrientationTargetInv * globalOrientation2;
+            if (toCurrentProjected.w < decimal(0.0))
             {
-                maxCorr = decimal(2.0) * PI;
+                toCurrentProjected = Quaternion(-toCurrentProjected.x, -toCurrentProjected.y, -toCurrentProjected.z, -toCurrentProjected.w);
             }
-            else
-            {
-                maxCorr = timeSubStep;
-            }
+            Vector3 toCurrentProjectedAxis;
+            decimal toCurrentProjectedAngle;
+            toCurrentProjected.getRotationAngleAxis(toCurrentProjectedAngle, toCurrentProjectedAxis);
+            Vector3 rotationToCurrent = toCurrentProjectedAxis * toCurrentProjectedAngle;
 
-            decimal & lambda = mBallAndSocketJointComponents.mLambda[i].z;
-            decimal angularVelocityDeltaProjected = angularVelocityDelta.dot(n);
+            Vector3 angularVelocityDeltaProjected = globalOrientationTargetInv * angularVelocityDelta;
 
-            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, n, a1, a2, limitsAnglesMin.z, limitsAnglesMax.z, 
-                mBallAndSocketJointComponents.mCallbacksZ[i], joint, angularVelocityDeltaProjected, timeSubStep, lambda, maxCorr);
+            Vector3 & lambdas = mBallAndSocketJointComponents.mLambda[i];
+
+            mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, rotationToCurrent, limitsAnglesMin, limitsAnglesMax,
+                globalOrientationTarget,
+                mBallAndSocketJointComponents.mCallbacksX[i], mBallAndSocketJointComponents.mCallbacksY[i], mBallAndSocketJointComponents.mCallbacksZ[i],
+                joint, angularVelocityDeltaProjected, timeSubStep, lambdas);
         }
-        
+
         // Simple attachement
         {
             Vector3 r1 = orientationBody1 * mBallAndSocketJointComponents.mLocalAnchorPointBody1[i];
