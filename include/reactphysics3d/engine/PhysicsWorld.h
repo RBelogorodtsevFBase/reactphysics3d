@@ -65,20 +65,20 @@ struct JointInfo;
 /**
  * This class represents a physics world.
  */
-class PhysicsWorld {
-
-    public:
+class PhysicsWorld
+{
+public:
 
         /// Structure WorldSettings
         /**
          * This class is used to describe some settings of a physics world.
          */
-        struct WorldSettings {
-
+        struct WorldSettings 
+        {
             /// Name of the world
             std::string worldName;
 
-            /// Gravity force vector of the world (in Newtons)
+            /// Gravity vector of the world
             Vector3 gravity;
 
             /// Distance threshold for two contact points for a valid persistent contact (in meters)
@@ -98,12 +98,6 @@ class PhysicsWorld {
 
             /// number of XPBD substeps per update
             uint defaultXPBDNbSubsteps;
-
-            /// Number of iterations when solving the velocity constraints of the Sequential Impulse technique
-            uint defaultVelocitySolverNbIterations;
-
-            /// Number of iterations when solving the position constraints of the Sequential Impulse technique
-            uint defaultPositionSolverNbIterations;
 
             /// Time (in seconds) that a body must stay still to be considered sleeping
             float defaultTimeBeforeSleep;
@@ -134,8 +128,6 @@ class PhysicsWorld {
                 defaultRestitution = decimal(0.1);
                 isSleepingEnabled = true;
                 defaultXPBDNbSubsteps = 20,
-                defaultVelocitySolverNbIterations = 10;
-                defaultPositionSolverNbIterations = 5;
                 defaultTimeBeforeSleep = 1.0f;
                 defaultSleepLinearVelocity = decimal(0.02);
                 defaultSleepAngularVelocity = decimal(3.0) * (PI / decimal(180.0));
@@ -159,8 +151,6 @@ class PhysicsWorld {
                 ss << "defaultRestitution=" << defaultRestitution << std::endl;
                 ss << "isSleepingEnabled=" << isSleepingEnabled << std::endl;
                 ss << "defaultXPBDNbSubsteps=" << defaultXPBDNbSubsteps << std::endl;
-                ss << "defaultVelocitySolverNbIterations=" << defaultVelocitySolverNbIterations << std::endl;
-                ss << "defaultPositionSolverNbIterations=" << defaultPositionSolverNbIterations << std::endl;
                 ss << "defaultTimeBeforeSleep=" << defaultTimeBeforeSleep << std::endl;
                 ss << "defaultSleepLinearVelocity=" << defaultSleepLinearVelocity << std::endl;
                 ss << "defaultSleepAngularVelocity=" << defaultSleepAngularVelocity << std::endl;
@@ -171,12 +161,11 @@ class PhysicsWorld {
             }
         };
 
-    protected :
-
+protected:
         // -------------------- Attributes -------------------- //
 
         /// Memory manager
-        MemoryManager& mMemoryManager;
+        MemoryManager & mMemoryManager;
 
         /// Configuration of the physics world
         WorldSettings mConfig;
@@ -232,7 +221,7 @@ class PhysicsWorld {
 #ifdef IS_RP3D_PROFILING_ENABLED
 
         /// Real-time hierarchical profiler
-        Profiler* mProfiler;
+        Profiler * mProfiler;
 #endif
 
         /// Total number of worlds
@@ -283,7 +272,7 @@ class PhysicsWorld {
         // -------------------- Methods -------------------- //
 
         /// Constructor
-        PhysicsWorld(MemoryManager& memoryManager, const WorldSettings& worldSettings = WorldSettings(), Profiler* profiler = nullptr);
+        PhysicsWorld(MemoryManager & memoryManager, const WorldSettings & worldSettings = WorldSettings(), Profiler * profiler = nullptr);
 
         void solvePositionXPBD(decimal timeSubStep);
 

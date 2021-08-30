@@ -37,10 +37,10 @@ using namespace reactphysics3d;
  * Create a polyhedron mesh given an array of polygons.
  * @param polygonVertexArray Pointer to the array of polygons and their vertices
  */
-PolyhedronMesh::PolyhedronMesh(PolygonVertexArray* polygonVertexArray, MemoryAllocator &allocator)
-               : mMemoryAllocator(allocator), mHalfEdgeStructure(allocator, polygonVertexArray->getNbFaces(), polygonVertexArray->getNbVertices(),
-                                    (polygonVertexArray->getNbFaces() + polygonVertexArray->getNbVertices() - 2) * 2) {
-
+PolyhedronMesh::PolyhedronMesh(PolygonVertexArray * polygonVertexArray, MemoryAllocator & allocator) 
+    : mMemoryAllocator(allocator)
+    , mHalfEdgeStructure(allocator, polygonVertexArray->getNbFaces(), polygonVertexArray->getNbVertices(), (polygonVertexArray->getNbFaces() + polygonVertexArray->getNbVertices() - 2) * 2)
+{
    mPolygonVertexArray = polygonVertexArray;
 
    // Create the half-edge structure of the mesh

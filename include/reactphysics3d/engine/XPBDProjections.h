@@ -4,6 +4,7 @@
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/mathematics/Vector3.h>
+#include <reactphysics3d/mathematics/Quaternion.h>
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {
@@ -59,9 +60,13 @@ class XPBDProjections {
 
         void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, decimal compliance, decimal dt, decimal & lambda, decimal maxCorr = PI);
 
-        void limitAngleXPBD(uint32 componentIndexBodyA, uint32 componentIndexBodyB, const Vector3 & n, const Vector3 & n1, const Vector3 & n2, decimal minAngle, decimal maxAngle, 
-            void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), BallAndSocketJoint * joint,
-            decimal velocity, decimal dt, decimal & lambda, decimal maxCorr = PI);
+        void limitAngleXPBD(uint32 componentIndexBody1, uint32 componentIndexBody2, const Vector3 & rotationToCurrent, const Vector3 & limitsAnglesMin, const Vector3 & limitsAnglesMax,
+            const Quaternion & pivot,
+            void (*callbackX)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), 
+            void (*callbackY)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), 
+            void (*callbackZ)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), 
+            BallAndSocketJoint * joint,
+            const Vector3 & angularVelocityDeltaProjected, decimal dt, Vector3 & lambdas, decimal maxCorr = PI);
 };
 
 }

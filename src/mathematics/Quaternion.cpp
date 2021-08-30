@@ -128,7 +128,7 @@ Quaternion::Quaternion(const Matrix3x3& matrix) {
 void Quaternion::getRotationAngleAxis(decimal& angle, Vector3& axis) const {
 
     // Compute the roation angle
-    angle = std::acos(w) * decimal(2.0);
+    angle = std::acos(std::clamp(w, decimal(-1.0), decimal(1.0))) * decimal(2.0);
 
     // Compute the 3D rotation axis
     Vector3 rotationAxis(x, y, z);
@@ -138,6 +138,17 @@ void Quaternion::getRotationAngleAxis(decimal& angle, Vector3& axis) const {
 
     // Set the rotation axis values
     axis.setAllValues(rotationAxis.x, rotationAxis.y, rotationAxis.z);
+}
+
+void Quaternion::setRotationAngleAxis(decimal angle, const Vector3 & axis)
+{
+    decimal halfPhi = angle * decimal(0.5);
+    decimal cosHalfPhi = std::cos(halfPhi);
+    decimal sinHalfPhi = std::sin(halfPhi);
+    x = sinHalfPhi * axis.x;
+    y = sinHalfPhi * axis.y;
+    z = sinHalfPhi * axis.z;
+    w = cosHalfPhi;
 }
 
 // Return the orientation matrix corresponding to this quaternion

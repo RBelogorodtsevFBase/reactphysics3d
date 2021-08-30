@@ -142,6 +142,8 @@ struct Quaternion {
         /// Compute the rotation angle (in radians) and the rotation axis
         void getRotationAngleAxis(decimal& angle, Vector3& axis) const;
 
+        void setRotationAngleAxis(decimal angle, const Vector3 & axis);
+
         /// Return true if the values are not NAN OR INF
         bool isFinite() const;
 
