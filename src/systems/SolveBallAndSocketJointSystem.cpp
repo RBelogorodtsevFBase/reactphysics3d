@@ -93,7 +93,7 @@ void SolveBallAndSocketJointSystem::solvePositionXPBD(decimal timeSubStep)
 
             mXPBDProjections.limitAngleXPBD(componentIndexBody1, componentIndexBody2, rotationToCurrent, limitsAnglesMin, limitsAnglesMax,
                 globalOrientationTarget,
-                mBallAndSocketJointComponents.mCallbacksX[i], mBallAndSocketJointComponents.mCallbacksY[i], mBallAndSocketJointComponents.mCallbacksZ[i],
+                mBallAndSocketJointComponents.mCallbacks[i],
                 joint, angularVelocityDeltaProjected, timeSubStep, lambdas);
         }
 

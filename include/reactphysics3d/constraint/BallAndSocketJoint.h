@@ -94,11 +94,7 @@ public:
         /// Set the limits in angles (in radians)
         void setLimits(const Vector3 & minAngles, const Vector3 & maxAngles);
 
-        void setSpringCallbackX(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
-
-        void setSpringCallbackY(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
-
-        void setSpringCallbackZ(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
+        void setSpringCallback(void (*callback)(BallAndSocketJoint * joint, const Vector3 & angles, const Vector3 & angularVelocity, Vector3 & outTargetAngles, Vector3 & outTorques));
 
         void setDamping(decimal damping);
 

@@ -62,9 +62,7 @@ class XPBDProjections {
 
         void limitAngleXPBD(uint32 componentIndexBody1, uint32 componentIndexBody2, const Vector3 & rotationToCurrent, const Vector3 & limitsAnglesMin, const Vector3 & limitsAnglesMax,
             const Quaternion & pivot,
-            void (*callbackX)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), 
-            void (*callbackY)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), 
-            void (*callbackZ)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque), 
+            void (*callback)(BallAndSocketJoint * joint, const Vector3 & angles, const Vector3 & angularVelocity, Vector3 & outTargetAngles, Vector3 & outTorques),
             BallAndSocketJoint * joint,
             const Vector3 & angularVelocityDeltaProjected, decimal dt, Vector3 & lambdas, decimal maxCorr = PI);
 };

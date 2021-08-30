@@ -61,11 +61,7 @@ private:
 
         Quaternion * mReferenceLocalInBody2;
 
-        void (** mCallbacksX)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
-
-        void (** mCallbacksY)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
-
-        void (** mCallbacksZ)(BallAndSocketJoint *, decimal, decimal, decimal &, decimal &);
+        void (** mCallbacks)(BallAndSocketJoint *, const Vector3 &, const Vector3 &, Vector3 &, Vector3 &);
 
         Vector3 * mLimitsAnglesMin;
 
@@ -130,11 +126,7 @@ private:
 
         void setReferenceLocalInBody2(Entity jointEntity, const Quaternion & referenceLocalInBody2);
 
-        void setSpringCallbackX(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
-
-        void setSpringCallbackY(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
-
-        void setSpringCallbackZ(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque));
+        void setSpringCallback(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, const Vector3 & angle, const Vector3 & velocity, Vector3 & outTargetAngle, Vector3 & outTorque));
 
         void setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles);
 
@@ -187,22 +179,10 @@ inline void BallAndSocketJointComponents::setReferenceLocalInBody2(Entity jointE
     mReferenceLocalInBody2[mMapEntityToComponentIndex[jointEntity]] = referenceLocalInBody2;
 }
 
-inline void BallAndSocketJointComponents::setSpringCallbackX(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+inline void BallAndSocketJointComponents::setSpringCallback(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, const Vector3 & angle, const Vector3 & velocity, Vector3 & outTargetAngle, Vector3 & outTorque))
 {
     assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mCallbacksX[mMapEntityToComponentIndex[jointEntity]] = callback;
-}
-
-inline void BallAndSocketJointComponents::setSpringCallbackY(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
-{
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mCallbacksY[mMapEntityToComponentIndex[jointEntity]] = callback;
-}
-
-inline void BallAndSocketJointComponents::setSpringCallbackZ(Entity jointEntity, void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
-{
-    assert(mMapEntityToComponentIndex.containsKey(jointEntity));
-    mCallbacksZ[mMapEntityToComponentIndex[jointEntity]] = callback;
+    mCallbacks[mMapEntityToComponentIndex[jointEntity]] = callback;
 }
 
 inline void BallAndSocketJointComponents::setLimitsAnglesMin(Entity jointEntity, const Vector3 & angles)

@@ -60,23 +60,9 @@ void BallAndSocketJoint::setLimits(const Vector3 & minAngles, const Vector3 & ma
     awakeBodies();
 }
 
-void BallAndSocketJoint::setSpringCallbackX(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
+void BallAndSocketJoint::setSpringCallback(void (*callback)(BallAndSocketJoint * joint, const Vector3 & angles, const Vector3 & angularVelocity, Vector3 & outTargetAngles, Vector3 & outTorques))
 {
-    mWorld.mBallAndSocketJointsComponents.setSpringCallbackX(mEntity, callback);
-
-    awakeBodies();
-}
-
-void BallAndSocketJoint::setSpringCallbackY(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
-{
-    mWorld.mBallAndSocketJointsComponents.setSpringCallbackY(mEntity, callback);
-
-    awakeBodies();
-}
-
-void BallAndSocketJoint::setSpringCallbackZ(void (*callback)(BallAndSocketJoint * joint, decimal angle, decimal velocity, decimal & outTargetAngle, decimal & outTorque))
-{
-    mWorld.mBallAndSocketJointsComponents.setSpringCallbackZ(mEntity, callback);
+    mWorld.mBallAndSocketJointsComponents.setSpringCallback(mEntity, callback);
 
     awakeBodies();
 }
