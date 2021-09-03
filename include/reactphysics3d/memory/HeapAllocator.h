@@ -41,109 +41,122 @@ namespace reactphysics3d {
  * This class is used to efficiently allocate memory on the heap.
  * It is used to allocate memory that cannot be allocated in a single frame allocator or a pool allocator.
  */
-class HeapAllocator : public MemoryAllocator {
+class HeapAllocator : public MemoryAllocator
+{
+public:
+    HeapAllocator(MemoryAllocator& baseAllocator, size_t initAllocatedMemory = 0);
 
-    private :
+    HeapAllocator& operator=(HeapAllocator& allocator) = delete;
 
-        // -------------------- Internal Classes -------------------- //
-
-        // Structure MemoryUnitHeader
-        /**
-         * Represent the header of a memory unit in the heap
-         */
-        struct MemoryUnitHeader {
-
-            public :
-
-                // -------------------- Attributes -------------------- //
-
-                /// Size in bytes of the allocated memory unit
-                size_t size;
-
-                /// True if the memory unit is currently allocated
-                bool isAllocated;
-
-                /// Pointer to the previous memory unit
-                MemoryUnitHeader* previousUnit;
-
-                /// Pointer to the next memory unit
-                MemoryUnitHeader* nextUnit;
-
-                /// True if the next memory unit has been allocated with the same call to malloc()
-                bool isNextContiguousMemory;
-
-                // -------------------- Methods -------------------- //
-
-                MemoryUnitHeader(size_t size, MemoryUnitHeader* previousUnit, MemoryUnitHeader* nextUnit, bool isNextContiguousMemory)
-                    : size(size), isAllocated(false), previousUnit(previousUnit),
-                      nextUnit(nextUnit), isNextContiguousMemory(isNextContiguousMemory) {
-
-                    assert(size > 0);
-                }
-
-        };
-
-        // -------------------- Constants -------------------- //
-
-        static size_t INIT_ALLOCATED_SIZE;
-
-        // -------------------- Attributes -------------------- //
-
-        // Mutex
-        std::mutex mMutex;
-
-        /// Base memory allocator
-        MemoryAllocator& mBaseAllocator;
-
-        /// Allocated memory (in bytes)
-        size_t mAllocatedMemory;
-
-        /// Pointer to the first memory unit of the linked-list
-        MemoryUnitHeader* mMemoryUnits;
-
-        /// Pointer to a cached free memory unit
-        MemoryUnitHeader* mCachedFreeUnit;
-
-#ifndef NDEBUG
-        /// This variable is incremented by one when the allocate() method has been
-        /// called and decreased by one when the release() method has been called.
-        /// This variable is used in debug mode to check that the allocate() and release()
-        /// methods are called the same number of times
-        int mNbTimesAllocateMethodCalled;
-#endif
-
-        // -------------------- Methods -------------------- //
-        
-        /// Split a memory unit in two units. One of size "size" and the second with
-        /// left over space. The second unit is put into the free memory units
-        void splitMemoryUnit(MemoryUnitHeader* unit, size_t size);
-
-        // Merge two contiguous memory units that are not allocated.
-        void mergeUnits(MemoryUnitHeader* unit1, MemoryUnitHeader* unit2);
-
-        /// Reserve more memory for the allocator
-        void reserve(size_t sizeToAllocate);
-
-    public :
-
-        // -------------------- Methods -------------------- //
-
-        /// Constructor
-        HeapAllocator(MemoryAllocator& baseAllocator, size_t initAllocatedMemory = 0);
-
-        /// Destructor
-        virtual ~HeapAllocator() override;
-
-        /// Assignment operator
-        HeapAllocator& operator=(HeapAllocator& allocator) = delete;
-
-        /// Allocate memory of a given size (in bytes) and return a pointer to the
-        /// allocated memory.
-        virtual void* allocate(size_t size) override;
-
-        /// Release previously allocated memory.
-        virtual void release(void* pointer, size_t size) override;
+    virtual void * allocate(size_t size) override;
+    
+    virtual void release(void * pointer, size_t size) override;
 };
+
+
+//class HeapAllocator : public MemoryAllocator {
+//
+//    private :
+//
+//        // -------------------- Internal Classes -------------------- //
+//
+//        // Structure MemoryUnitHeader
+//        /**
+//         * Represent the header of a memory unit in the heap
+//         */
+//        struct MemoryUnitHeader {
+//
+//            public :
+//
+//                // -------------------- Attributes -------------------- //
+//
+//                /// Size in bytes of the allocated memory unit
+//                size_t size;
+//
+//                /// True if the memory unit is currently allocated
+//                bool isAllocated;
+//
+//                /// Pointer to the previous memory unit
+//                MemoryUnitHeader* previousUnit;
+//
+//                /// Pointer to the next memory unit
+//                MemoryUnitHeader* nextUnit;
+//
+//                /// True if the next memory unit has been allocated with the same call to malloc()
+//                bool isNextContiguousMemory;
+//
+//                // -------------------- Methods -------------------- //
+//
+//                MemoryUnitHeader(size_t size, MemoryUnitHeader* previousUnit, MemoryUnitHeader* nextUnit, bool isNextContiguousMemory)
+//                    : size(size), isAllocated(false), previousUnit(previousUnit),
+//                      nextUnit(nextUnit), isNextContiguousMemory(isNextContiguousMemory) {
+//
+//                    assert(size > 0);
+//                }
+//
+//        };
+//
+//        // -------------------- Constants -------------------- //
+//
+//        static size_t INIT_ALLOCATED_SIZE;
+//
+//        // -------------------- Attributes -------------------- //
+//
+//        // Mutex
+//        std::mutex mMutex;
+//
+//        /// Base memory allocator
+//        MemoryAllocator& mBaseAllocator;
+//
+//        /// Allocated memory (in bytes)
+//        size_t mAllocatedMemory;
+//
+//        /// Pointer to the first memory unit of the linked-list
+//        MemoryUnitHeader* mMemoryUnits;
+//
+//        /// Pointer to a cached free memory unit
+//        MemoryUnitHeader* mCachedFreeUnit;
+//
+//#ifndef NDEBUG
+//        /// This variable is incremented by one when the allocate() method has been
+//        /// called and decreased by one when the release() method has been called.
+//        /// This variable is used in debug mode to check that the allocate() and release()
+//        /// methods are called the same number of times
+//        int mNbTimesAllocateMethodCalled;
+//#endif
+//
+//        // -------------------- Methods -------------------- //
+//        
+//        /// Split a memory unit in two units. One of size "size" and the second with
+//        /// left over space. The second unit is put into the free memory units
+//        void splitMemoryUnit(MemoryUnitHeader* unit, size_t size);
+//
+//        // Merge two contiguous memory units that are not allocated.
+//        void mergeUnits(MemoryUnitHeader* unit1, MemoryUnitHeader* unit2);
+//
+//        /// Reserve more memory for the allocator
+//        void reserve(size_t sizeToAllocate);
+//
+//    public :
+//
+//        // -------------------- Methods -------------------- //
+//
+//        /// Constructor
+//        HeapAllocator(MemoryAllocator& baseAllocator, size_t initAllocatedMemory = 0);
+//
+//        /// Destructor
+//        virtual ~HeapAllocator() override;
+//
+//        /// Assignment operator
+//        HeapAllocator& operator=(HeapAllocator& allocator) = delete;
+//
+//        /// Allocate memory of a given size (in bytes) and return a pointer to the
+//        /// allocated memory.
+//        virtual void* allocate(size_t size) override;
+//
+//        /// Release previously allocated memory.
+//        virtual void release(void* pointer, size_t size) override;
+//};
 
 }
 
